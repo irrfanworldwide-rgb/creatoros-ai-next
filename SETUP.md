@@ -213,6 +213,7 @@ it's safe to run even if some tables already exist — it won't drop data.
 | Generation fails with "rate limit or quota exceeded" | Groq account hit its rate limit — try again shortly |
 | Google sign-in loops back to landing | Redirect URL mismatch — see §4 |
 | "row-level security policy" error on insert | RLS policy missing/misconfigured — compare against `supabase/schema.sql` |
+| Every page shows "Something went wrong. Please try reloading the page." right after deploying | `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` missing from your **hosting provider's** env vars (not just local `.env.local`, which is gitignored and never deploys). Add them in Vercel → Project → Settings → Environment Variables, then **redeploy** — `NEXT_PUBLIC_` vars are baked into the build at build time, so adding them without redeploying has no effect. As of this fix, missing vars now show a specific "Configuration needed" screen naming the exact variable instead of this generic message. |
 | "Could not load the payment form" | Razorpay's checkout.js failed to load — check network/ad-blockers |
 | "NEXT_PUBLIC_RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET is not set" | Missing from `.env.local` — see §2b |
 | Razorpay checkout opens but rejects the key | Using a live key in test mode or vice versa — key prefix (`rzp_test_` / `rzp_live_`) must match the mode you're testing in |

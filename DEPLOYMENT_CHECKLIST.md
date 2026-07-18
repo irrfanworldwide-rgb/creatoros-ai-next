@@ -39,6 +39,14 @@ Set these for the **Production** environment at minimum; add them to
 Preview/Development too if you want preview deploys to work end-to-end
 (using test keys there instead of live ones is recommended).
 
+**Critical:** `NEXT_PUBLIC_*` variables are baked into the JavaScript
+bundle at **build time**, not read at runtime. If you add or change one
+in Vercel's dashboard after a deployment already exists, you must
+**redeploy** (Deployments → ⋯ → Redeploy) for it to take effect — saving
+the env var alone does nothing to an already-built deployment. Skipping
+this step is the most common cause of "it works locally but not in
+production" for this app.
+
 ## 4. Update Supabase for your production domain
 Supabase Dashboard → Authentication → URL Configuration:
 - **Site URL:** your production domain

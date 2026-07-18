@@ -62,7 +62,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ content, usageToday: newUsageToday });
   } catch (err) {
     if (err instanceof AIProviderError) {
-      return NextResponse.json({ error: err.message }, { status: err.status });
+      // The detailed message (which may name the underlying provider,
+      // e.g. "Groq rejected the API key") is logged server-side only —
+      // never sent to the client. The user always sees generic,
+      // CreatorOS AI-branded copy, regardless of which provider is
+      // configured behind the scenes.
+      // eslint-disable-next-line no-console
+      console.error("AI generation provider error:", err.message);
+      const clientMessage =
+        err.status === 429
+          ? "You're sending requests too quickly. Please wait a moment and try again."
+          : "CreatorOS AI is temporarily unavailable. Please try again in a moment.";
+      return NextResponse.json({ error: clientMessage }, { status: err.status });
     }
     return NextResponse.json({ error: "Generation failed. Please try again." }, { status: 500 });
   }

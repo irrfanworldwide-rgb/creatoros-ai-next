@@ -9,6 +9,12 @@ import { createGroqProvider } from "./groq";
  * tool.prompt(values) in data/tools.ts — this layer just needs to execute
  * whatever prompt it's given, so no per-tool changes are needed here.
  *
+ * Every provider implementation injects the CREATOROS_SYSTEM_PROMPT
+ * (see ./systemPrompt.ts) and runs its response through
+ * sanitizeAIResponse() (./sanitize.ts) before returning — the model
+ * always identifies as "CreatorOS AI" and never names the underlying
+ * provider, regardless of which one is active here.
+ *
  * Set AI_PROVIDER in .env.local to "groq" (default — matches the live
  * app), "openai", or "anthropic".
  */

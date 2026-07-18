@@ -8,6 +8,8 @@ import { canGenerate } from "@/lib/supabase/data";
 import BottomNav from "@/components/BottomNav";
 import ScreenLoader from "@/components/ScreenLoader";
 import { useToast } from "@/contexts/ToastContext";
+import { useUpgradeFlow } from "@/hooks/useUpgradeFlow";
+import { createRipple } from "@/lib/ui/ripple";
 
 interface ChatMessage {
   role: "user" | "ai";
@@ -22,6 +24,7 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { showToast } = useToast();
+  const { goToUpgrade, redirecting } = useUpgradeFlow();
 
   if (loading || !user) return <ScreenLoader />;
 
@@ -121,8 +124,20 @@ export default function ChatPage() {
             }
           }}
         />
-        <button className="chat-send-btn" disabled={!allowed || !input.trim() || sending} onClick={handleSend}>
-          ➤
+        <button
+          className="chat-send-btn ripple-container"
+          disabled={sending || redirecting || (allowed && !input.trim())}
+          onClick={(e) => {
+            if (!allowed) {
+              createRipple(e);
+              goToUpgrade();
+              return;
+            }
+            handleSend();
+          }}
+          title={allowed ? "Send" : "Upgrade to Pro"}
+        >
+          {redirecting ? <span className="spinner" style={{ display: "inline-block" }} /> : allowed ? "➤" : "⭐"}
         </button>
       </div>
 

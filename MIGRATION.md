@@ -288,6 +288,114 @@ ports. Please sanity-check these against your live site's actual behavior:
 All 6 phases are done. This is a production-ready release — see
 `DEPLOYMENT_CHECKLIST.md` to actually go live.
 
+### ✅ Phase 7 (this delivery) — Fixed production crash: "Something went wrong"
+**Root cause:** `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+were never added to Vercel's environment variables — only `.env.local`
+had them, which is correctly gitignored and never reaches a deployment.
+`getSupabaseBrowserClient()` threw on missing config exactly as designed,
+but that throw happened inside `SessionContext`'s effect, which runs in
+the root layout on every page — so it escalated past the per-route
+`app/error.tsx` boundary all the way to `app/global-error.tsx`, showing
+the generic "Something went wrong. Please try reloading the page."
+message everywhere, with server logs showing nothing unusual (the crash
+is entirely client-side, after a successful 200 response).
+
+**Fixed by:**
+- `lib/supabase/client.ts` — added `getMissingSupabaseEnvVars()`, a
+  non-throwing check `SessionContext` can call up front.
+- `contexts/SessionContext.tsx` — checks config before attempting any
+  Supabase call; if misconfigured, renders `<ConfigError>` (naming the
+  exact missing variable) instead of `{children}`, rather than letting an
+  uncaught throw crash the whole tree. Also wrapped the actual
+  `getSession()`/`onAuthStateChange()` calls in try/catch so a network or
+  bad-URL problem degrades to "logged out" instead of crashing, and fixed
+  an auth-listener cleanup bug introduced during this rewrite (subscription
+  is now unsubscribed correctly on unmount).
+- `components/ConfigError.tsx` — new, friendly config-error screen.
+- `SETUP.md` / `DEPLOYMENT_CHECKLIST.md` — added this exact symptom to
+  the troubleshooting table, plus a callout that `NEXT_PUBLIC_*` vars
+  need a **redeploy** after being added in Vercel (they're baked in at
+  build time, not read at runtime).
+
+**What you need to do:** add `NEXT_PUBLIC_SUPABASE_URL` and
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` (and the rest of `.env.example`) in
+Vercel → Project → Settings → Environment Variables, then redeploy. Once
+that's done, the app should work; if any env var is still missing after
+that, you'll now see exactly which one instead of a generic crash.
+
+### ✅ Phase 8 (this delivery) — Splash screen, upgrade flow fix, AI branding, bottom nav fix
+All four items requested, all additive/fixes — no existing screens were
+redesigned, no routes changed, no Supabase/Groq/Razorpay logic touched.
+
+**Premium splash screen** (new):
+- `components/SplashScreen.tsx` — glassmorphism card, animated gradient
+  background, 14 floating particles, animated SVG progress ring with
+  live percentage, 5 cycling messages exactly as specified, ~2.5s total
+  duration, fades out on completion.
+- `components/AppBoot.tsx` — shows it once per browser session (via
+  `sessionStorage`, not on every client-side navigation) while the real
+  app continues mounting underneath in parallel, so it costs no
+  perceived performance.
+- Wired into `app/layout.tsx` as the outermost wrapper.
+
+**Upgrade button fix (the actual bug):** the "Daily Limit Reached —
+Upgrade to Pro" button in Tool Detail was `disabled` whenever the limit
+was hit — meaning it was **never clickable at all**, which is exactly why
+it "did nothing." Fixed:
+- `hooks/useUpgradeFlow.ts` — shared logic: logged-in users go straight
+  to `/profile?upgrade=1` (Pricing); logged-out users are sent to Login
+  and automatically carried through to Pricing after signing in, via
+  `lib/upgrade/intent.ts` (a one-shot `sessionStorage` flag).
+- `app/profile/page.tsx` — reads `?upgrade=1` on mount, auto-opens
+  `SubscriptionModal`, then cleans the URL.
+- `app/page.tsx` (landing) — checks for a pending upgrade after login and
+  redirects to Pricing instead of Home when one exists.
+- Applied consistently to every upgrade trigger: Tool Detail's gen-btn
+  (the original bug), the usage-pill's "Upgrade" link, Chat's send button
+  (now an actionable upgrade CTA when the limit is hit, previously just a
+  disabled dead end), and the Home page banner.
+- `lib/ui/ripple.ts` + new `.ripple-container`/`.ripple-effect` CSS —
+  ripple, hover-lift, and active-press feedback on every upgrade CTA,
+  plus a brief "Redirecting..." loading state.
+- Razorpay's post-payment `refreshProfile()` call (already correct since
+  Phase 5) was confirmed still in place and untouched — the plan already
+  updates instantly with no manual refresh needed.
+
+**AI identity masking:**
+- `lib/ai/systemPrompt.ts` — a `CREATOROS_SYSTEM_PROMPT` injected into
+  every provider call (system message for Groq/OpenAI, the `system`
+  field for Anthropic), instructing the model to always identify as
+  "CreatorOS AI" using the exact wording requested, and never name the
+  underlying provider/model even if asked directly.
+- `lib/ai/sanitize.ts` — defense-in-depth: strips any provider/model
+  names that slip through anyway (OpenAI, ChatGPT, GPT-4/3.5, Anthropic,
+  Claude, Gemini, Groq, Mixtral, Llama/LLaMA) from every response, using
+  specific branded terms rather than bare generic words so it can't
+  corrupt unrelated content (e.g. a tool page about llamas the animal).
+- `app/api/generate/route.ts` — provider-identifying error text (e.g.
+  "Groq rejected the API key") is now logged server-side only; the
+  client always sees generic, CreatorOS AI-branded error copy.
+- Confirmed no other user-facing UI anywhere in the app referenced a
+  provider name.
+
+**Bottom navigation fix:** the "two active indicators" turned out to be
+the top pill indicator (correct, working as designed) plus a default
+browser underline on the `<a>` tags `next/link` renders, which the
+original vanilla-JS nav (plain `<div onclick>`s, no real links) never
+had to account for. Fixed with `text-decoration: none` on `.bnav-item`.
+Also added a smoother indicator transition and a subtle glow on the
+active icon (`filter: drop-shadow`) per the "premium navigation
+animation" ask — emoji icons can't be gradient-filled via
+`background-clip: text` (they're bitmap glyphs), so a glow was used
+instead of a literal gradient fill.
+
+No new npm dependencies — splash screen is pure CSS/SVG, ripple is a
+plain DOM helper, no animation library added.
+
+**Not yet done (per your ordering — next up is Phase 9):** the chat page
+itself is still the pre-redesign layout; only its send-button behavior
+changed in this phase. Full mobile-first redesign is Phase 9.
+
 ## Optional follow-ups (not blockers, listed in PRODUCTION_AUDIT.md)
 - Dedicated rate limiting (e.g. Upstash Ratelimit) in front of
   `/api/generate` for scale beyond what the per-user daily cap covers.

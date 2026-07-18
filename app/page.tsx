@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import LandingToolsGrid from "@/components/LandingToolsGrid";
 import ScreenLoader from "@/components/ScreenLoader";
 import { useSession } from "@/contexts/SessionContext";
+import { consumePendingUpgrade } from "@/lib/upgrade/intent";
 
 const AuthModal = dynamic(() => import("@/components/AuthModal"), { ssr: false });
 
@@ -17,7 +18,9 @@ export default function LandingPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user) router.replace("/home");
+    if (!loading && user) {
+      router.replace(consumePendingUpgrade() ? "/profile?upgrade=1" : "/home");
+    }
   }, [loading, user, router]);
 
   function openAuth(tab: "login" | "signup") {

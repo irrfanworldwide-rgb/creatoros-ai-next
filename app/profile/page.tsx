@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
@@ -8,6 +8,7 @@ import { useSession } from "@/contexts/SessionContext";
 import BottomNav from "@/components/BottomNav";
 import ScreenLoader from "@/components/ScreenLoader";
 import { useToast } from "@/contexts/ToastContext";
+import { createRipple } from "@/lib/ui/ripple";
 
 const SubscriptionModal = dynamic(() => import("@/components/SubscriptionModal"), { ssr: false });
 
@@ -17,6 +18,17 @@ export default function ProfilePage() {
   const router = useRouter();
   const [subOpen, setSubOpen] = useState(false);
   const { showToast } = useToast();
+
+  // Reached via the shared upgrade flow (Tool Detail limit, Chat limit,
+  // Home banner) — auto-open the modal, then clean the URL. Reading
+  // window.location directly (rather than useSearchParams) avoids the
+  // App Router's Suspense-boundary requirement for a one-time check.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("upgrade") === "1") {
+      setSubOpen(true);
+      router.replace("/profile");
+    }
+  }, [router]);
 
   if (loading || !user) return <ScreenLoader />;
 
@@ -48,7 +60,13 @@ export default function ProfilePage() {
               <h3>Go unlimited</h3>
               <p>Upgrade to Pro for unlimited generations.</p>
             </div>
-            <button className="ucp-btn" onClick={() => setSubOpen(true)}>
+            <button
+              className="ucp-btn ripple-container"
+              onClick={(e) => {
+                createRipple(e);
+                setSubOpen(true);
+              }}
+            >
               Upgrade
             </button>
           </div>

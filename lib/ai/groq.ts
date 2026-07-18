@@ -1,4 +1,6 @@
 import { AIProviderError, type AIProvider, type AIGenerateResult } from "./types";
+import { CREATOROS_SYSTEM_PROMPT } from "./systemPrompt";
+import { sanitizeAIResponse } from "./sanitize";
 
 export function createGroqProvider(): AIProvider {
   const apiKey = process.env.GROQ_API_KEY;
@@ -25,7 +27,10 @@ export function createGroqProvider(): AIProvider {
           },
           body: JSON.stringify({
             model,
-            messages: [{ role: "user", content: prompt }],
+            messages: [
+              { role: "system", content: CREATOROS_SYSTEM_PROMPT },
+              { role: "user", content: prompt },
+            ],
             temperature: 0.8,
           }),
         });
@@ -49,7 +54,7 @@ export function createGroqProvider(): AIProvider {
       if (!content) {
         throw new AIProviderError("Groq returned an empty response. Please try again.", 502);
       }
-      return { content };
+      return { content: sanitizeAIResponse(content) };
     },
   };
 }

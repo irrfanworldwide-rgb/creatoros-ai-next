@@ -2,8 +2,9 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import type { User } from "@supabase/supabase-js";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient, getMissingSupabaseEnvVars } from "@/lib/supabase/client";
 import { ensureProfile, getTodayUsage, type Profile } from "@/lib/supabase/data";
+import ConfigError from "@/components/ConfigError";
 
 interface SessionContextValue {
   user: User | null;
@@ -23,6 +24,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [usageToday, setUsageToday] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // Computed once per render, not stateful — this is a pure env check, so
+  // it's safe to call directly rather than stashing in useState/useEffect.
+  const missingEnvVars = getMissingSupabaseEnvVars();
+
   const loadForUser = useCallback(async (u: User) => {
     const sb = getSupabaseBrowserClient();
     const [p, usage] = await Promise.all([ensureProfile(sb, u), getTodayUsage(sb, u.id)]);
@@ -31,26 +36,58 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const sb = getSupabaseBrowserClient();
-
-    sb.auth.getSession().then(async ({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) await loadForUser(session.user);
+    // Config is broken — don't attempt any Supabase calls. The provider
+    // renders <ConfigError> below instead of {children}, so this effect
+    // doing nothing further is fine; nothing downstream will render.
+    if (missingEnvVars.length > 0) {
       setLoading(false);
-    });
+      return;
+    }
 
-    const { data: listener } = sb.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await loadForUser(session.user);
-      } else {
-        setProfile(null);
-        setUsageToday(0);
+    let unsubscribed = false;
+    let authListener: { subscription: { unsubscribe: () => void } } | null = null;
+
+    (async () => {
+      try {
+        const sb = getSupabaseBrowserClient();
+
+        const {
+          data: { session },
+        } = await sb.auth.getSession();
+        if (unsubscribed) return;
+        setUser(session?.user ?? null);
+        if (session?.user) await loadForUser(session.user);
+        setLoading(false);
+
+        const { data: listener } = sb.auth.onAuthStateChange(async (_event, newSession) => {
+          setUser(newSession?.user ?? null);
+          if (newSession?.user) {
+            await loadForUser(newSession.user);
+          } else {
+            setProfile(null);
+            setUsageToday(0);
+          }
+        });
+        if (unsubscribed) {
+          listener.subscription.unsubscribe();
+        } else {
+          authListener = listener;
+        }
+      } catch (err) {
+        // A real Supabase config/network problem (bad URL, project paused,
+        // etc.) shouldn't crash the whole app — degrade to "logged out"
+        // and let the user retry, same as if they simply weren't signed in.
+        // eslint-disable-next-line no-console
+        console.error("Session initialization failed:", err);
+        if (!unsubscribed) setLoading(false);
       }
-    });
+    })();
 
-    return () => listener.subscription.unsubscribe();
-  }, [loadForUser]);
+    return () => {
+      unsubscribed = true;
+      authListener?.subscription.unsubscribe();
+    };
+  }, [loadForUser, missingEnvVars.length]);
 
   const refreshUsage = useCallback(async () => {
     if (!user) return;
@@ -67,6 +104,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const sb = getSupabaseBrowserClient();
     await sb.auth.signOut();
   }, []);
+
+  if (missingEnvVars.length > 0) {
+    return <ConfigError missing={missingEnvVars} />;
+  }
 
   return (
     <SessionContext.Provider value={{ user, profile, usageToday, loading, refreshUsage, refreshProfile, signOut }}>

@@ -1,4 +1,6 @@
 import { AIProviderError, type AIProvider, type AIGenerateResult } from "./types";
+import { CREATOROS_SYSTEM_PROMPT } from "./systemPrompt";
+import { sanitizeAIResponse } from "./sanitize";
 
 export function createAnthropicProvider(): AIProvider {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -25,6 +27,7 @@ export function createAnthropicProvider(): AIProvider {
           body: JSON.stringify({
             model,
             max_tokens: 1500,
+            system: CREATOROS_SYSTEM_PROMPT,
             messages: [{ role: "user", content: prompt }],
           }),
         });
@@ -48,7 +51,7 @@ export function createAnthropicProvider(): AIProvider {
       if (!content) {
         throw new AIProviderError("Anthropic returned an empty response. Please try again.", 502);
       }
-      return { content };
+      return { content: sanitizeAIResponse(content) };
     },
   };
 }

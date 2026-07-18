@@ -1,4 +1,6 @@
 import { AIProviderError, type AIProvider, type AIGenerateResult } from "./types";
+import { CREATOROS_SYSTEM_PROMPT } from "./systemPrompt";
+import { sanitizeAIResponse } from "./sanitize";
 
 export function createOpenAIProvider(): AIProvider {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -23,7 +25,10 @@ export function createOpenAIProvider(): AIProvider {
           },
           body: JSON.stringify({
             model,
-            messages: [{ role: "user", content: prompt }],
+            messages: [
+              { role: "system", content: CREATOROS_SYSTEM_PROMPT },
+              { role: "user", content: prompt },
+            ],
             temperature: 0.8,
           }),
         });
@@ -47,7 +52,7 @@ export function createOpenAIProvider(): AIProvider {
       if (!content) {
         throw new AIProviderError("OpenAI returned an empty response. Please try again.", 502);
       }
-      return { content };
+      return { content: sanitizeAIResponse(content) };
     },
   };
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { SessionProvider } from "@/contexts/SessionContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import AppBoot from "@/components/AppBoot";
 import "./globals.css";
 
 const inter = Inter({
@@ -63,9 +64,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body>
-        <SessionProvider>
-          <ToastProvider>{children}</ToastProvider>
-        </SessionProvider>
+        <AppBoot>
+          <SessionProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </SessionProvider>
+        </AppBoot>
       </body>
     </html>
   );

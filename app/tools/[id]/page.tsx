@@ -9,6 +9,8 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { canGenerate, saveGeneration, FREE_DAILY_LIMIT } from "@/lib/supabase/data";
 import { useToast } from "@/contexts/ToastContext";
 import ScreenLoader from "@/components/ScreenLoader";
+import { useUpgradeFlow } from "@/hooks/useUpgradeFlow";
+import { createRipple } from "@/lib/ui/ripple";
 import type { ToolValues } from "@/types/tool";
 
 export default function ToolDetailPage() {
@@ -24,6 +26,7 @@ export default function ToolDetailPage() {
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const { showToast } = useToast();
+  const { goToUpgrade, redirecting } = useUpgradeFlow();
 
   if (!tool) {
     return (
@@ -154,7 +157,7 @@ export default function ToolDetailPage() {
                       <div key={i} className={`udot ${used ? "used" : ""}`} />
                     ))}
                   </div>
-                  <button className="upg-btn" onClick={() => router.push("/profile")}>
+                  <button className="upg-btn" onClick={goToUpgrade}>
                     Upgrade
                   </button>
                 </div>
@@ -195,11 +198,25 @@ export default function ToolDetailPage() {
               </div>
             ))}
 
-            <button className="gen-btn" disabled={!allowed || loadingGen} onClick={handleGenerate}>
+            <button
+              className="gen-btn ripple-container"
+              disabled={loadingGen || redirecting}
+              onClick={(e) => {
+                if (!allowed) {
+                  createRipple(e);
+                  goToUpgrade();
+                  return;
+                }
+                handleGenerate();
+              }}
+            >
               {loadingGen ? (
                 <span className="spinner" style={{ display: "inline-block" }} />
               ) : !allowed ? (
-                "Daily limit reached — upgrade to Pro"
+                <span className="upgrade-inline-cta">
+                  {redirecting && <span className="spinner" style={{ display: "inline-block" }} />}
+                  {redirecting ? "Redirecting..." : "Daily limit reached — Upgrade to Pro"}
+                </span>
               ) : (
                 <>✨ Generate</>
               )}

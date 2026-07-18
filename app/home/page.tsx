@@ -8,11 +8,14 @@ import BottomNav from "@/components/BottomNav";
 import ScreenLoader from "@/components/ScreenLoader";
 import { TOOLS, TIPS } from "@/data/tools";
 import { FREE_DAILY_LIMIT } from "@/lib/supabase/data";
+import { useUpgradeFlow } from "@/hooks/useUpgradeFlow";
+import { createRipple } from "@/lib/ui/ripple";
 
 export default function HomePage() {
   const { user, loading } = useRequireAuth();
   const { profile, usageToday } = useSession();
   const router = useRouter();
+  const { goToUpgrade } = useUpgradeFlow();
 
   const tip = useMemo(() => TIPS[Math.floor(Math.random() * TIPS.length)], []);
   const recentTools = TOOLS.slice(0, 6);
@@ -120,7 +123,13 @@ export default function HomePage() {
             <h3>Go unlimited</h3>
             <p>Upgrade to Pro for unlimited generations.</p>
           </div>
-          <button className="ub-btn" onClick={() => router.push("/profile")}>
+          <button
+            className="ub-btn ripple-container"
+            onClick={(e) => {
+              createRipple(e);
+              goToUpgrade();
+            }}
+          >
             Upgrade
           </button>
         </div>
