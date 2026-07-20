@@ -1,9 +1,23 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
+export type SubscriptionStatus =
+  | "created"
+  | "authenticated"
+  | "active"
+  | "pending"
+  | "halted"
+  | "cancelled"
+  | "completed"
+  | "expired"
+  | null;
+
 export interface Profile {
   id: string;
   email: string | null;
   plan: "free" | "pro";
+  razorpay_subscription_id: string | null;
+  subscription_status: SubscriptionStatus;
+  subscription_current_end: string | null;
 }
 
 export interface GenerationRecord {

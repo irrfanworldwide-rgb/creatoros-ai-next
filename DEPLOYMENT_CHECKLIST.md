@@ -33,11 +33,23 @@ variable from `.env.example` with your **real production values**:
 | `GROQ_MODEL` | Optional, defaults to `llama-3.3-70b-versatile` |
 | `NEXT_PUBLIC_RAZORPAY_KEY_ID` | Use your **live** key (`rzp_live_...`) for real payments, not test |
 | `RAZORPAY_KEY_SECRET` | Live secret — mark as "Sensitive" in Vercel's UI |
+| `RAZORPAY_PLAN_ID` | Your live Plan ID (a Plan created with test keys won't work with live keys — create it again under live mode) |
+| `RAZORPAY_WEBHOOK_SECRET` | From the **production** webhook you register in step 3a below — different from any secret used in local dev |
+| `SUPABASE_SERVICE_ROLE_KEY` | From Supabase Dashboard → Settings → API — mark as "Sensitive" in Vercel's UI, never expose this |
 | `NEXT_PUBLIC_SITE_URL` | Your production domain, e.g. `https://creatoros.ai` — used for SEO metadata, sitemap, and OAuth redirect matching |
 
 Set these for the **Production** environment at minimum; add them to
 Preview/Development too if you want preview deploys to work end-to-end
 (using test keys there instead of live ones is recommended).
+
+**3a. Register the production webhook** (do this AFTER your first
+deploy, once you have a real URL): Razorpay Dashboard → Settings →
+Webhooks → Add New Webhook → URL: `https://<your-domain>/api/payments/webhook`
+→ enable `subscription.activated`, `subscription.charged`,
+`subscription.pending`, `subscription.halted`, `subscription.cancelled`,
+`subscription.completed` → save, copy the Webhook Secret it gives you
+into `RAZORPAY_WEBHOOK_SECRET` in Vercel, then **redeploy** (env var
+change requires it, same as any other).
 
 **Critical:** `NEXT_PUBLIC_*` variables are baked into the JavaScript
 bundle at **build time**, not read at runtime. If you add or change one
@@ -81,8 +93,15 @@ Run through this on the live URL before announcing launch:
       block message appears
 - [ ] Save a generation → confirm it appears in Library
 - [ ] Complete a real (or Razorpay test-mode, if you deployed with test
-      keys) payment → confirm plan badge flips to "Pro" without a reload
-- [ ] Check `payments` table has a new row after a successful payment
+      keys) subscription payment → confirm plan badge flips to "Pro"
+      without a reload
+- [ ] Check `payments` table has a new row, and `profiles` shows
+      `razorpay_subscription_id` + `subscription_status = active`
+- [ ] Razorpay Dashboard → Webhooks → your webhook shows a successful
+      (2xx) delivery for the test payment, not a failure
+- [ ] Profile page shows Next Billing Date and Auto-Renew: On
+- [ ] Click "Cancel Subscription" (tap twice to confirm) → Auto-Renew
+      flips to Off, Status shows "Active (ending soon)", plan stays Pro
 - [ ] Visit `/robots.txt` and `/sitemap.xml` on the live domain — confirm
       they resolve and list the expected URLs
 - [ ] Test on an actual phone, not just a resized browser window

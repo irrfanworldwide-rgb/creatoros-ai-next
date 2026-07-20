@@ -359,3 +359,62 @@ select.inp-field{appearance:none;background-repeat:no-repeat;background-position
 .bnav-indicator{transition:opacity .25s cubic-bezier(.4,0,.2,1),transform .25s cubic-bezier(.4,0,.2,1)}
 .bnav-item.active .bnav-icon{filter:drop-shadow(0 0 6px rgba(168,85,247,.55));transition:filter .2s ease}
 .bnav-icon,.bnav-label{transition:color .2s ease}
+
+/* ============================================================
+   PHASE 9 — Mobile-first polish + tablet/desktop responsiveness.
+   Additive only — nothing above this line is modified. Existing
+   mobile layout is preserved exactly at narrow widths; these rules
+   only add behavior at wider viewports (min-width queries) or refine
+   things (safe-area, glass, touch targets) that were previously
+   either missing or only implicit.
+   ============================================================ */
+
+/* ---- Safe-area handling (notch / home-indicator devices) ---- */
+.bottom-nav{padding-bottom:env(safe-area-inset-bottom,0)}
+.chat-input-wrap{padding-bottom:calc(.85rem + env(safe-area-inset-bottom,0))}
+
+/* ---- Glassmorphism for modals ---- */
+.glass-modal{background:rgba(22,27,34,.72);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(168,85,247,.18)}
+
+/* ---- Touch targets: ensure every tappable control meets ~44px minimum ---- */
+.bnav-item{min-height:48px}
+.act-btn,.lib-btn{min-height:34px;padding-top:7px;padding-bottom:7px}
+.dash-icon-btn,.td-back,.modal-close{min-width:40px;min-height:40px}
+.chat-send-btn{width:44px;height:44px}
+
+/* ---- Smooth scrolling everywhere ---- */
+.chat-messages,.lib-grid,.hscroll-wrap,.result-content{scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+
+/* ---- Chat: proper flex-fill layout instead of min-height guessing,
+   sticky input pinned above the bottom nav, no dead space ---- */
+@media (max-width:767px){
+  .screen.chat-screen{display:flex;flex-direction:column;min-height:calc(100vh - var(--bnav))}
+  .chat-messages{flex:1;min-height:0}
+  .chat-empty{min-height:auto;flex:1}
+}
+
+/* ---- Tablet (≥640px) ---- */
+@media (min-width:640px){
+  .tools-grid,.tools-grid-2{grid-template-columns:repeat(3,1fr)}
+  .quick-actions{grid-template-columns:repeat(3,1fr);max-width:420px}
+  .stats-grid{max-width:520px}
+  .sub-plans{max-width:480px;margin:0 auto;padding-left:0;padding-right:0}
+}
+
+/* ---- Desktop (≥1024px): center the mobile-app layout in a fixed-width
+   column rather than stretching everything full-bleed, which is what a
+   phone-first design needs to stay readable and premium-feeling on a
+   wide monitor. The layout ITSELF is unchanged — this only constrains
+   its width and centers it. ---- */
+@media (min-width:1024px){
+  body{display:flex;justify-content:center;background:var(--surface2)}
+  .app-shell{width:100%;max-width:480px;background:var(--bg);min-height:100vh;box-shadow:0 0 60px rgba(0,0,0,.4)}
+  .bottom-nav{max-width:480px;left:50%;transform:translateX(-50%)}
+  .modal-overlay{backdrop-filter:blur(12px)}
+  .tools-grid,.tools-grid-2{grid-template-columns:repeat(3,1fr)}
+}
+
+/* ---- Premium micro-interactions ---- */
+.tool-card,.tool-card-landing,.recent-tool-card,.lib-card,.qa-item{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.tool-card:active,.tool-card-landing:active,.recent-tool-card:active,.qa-item:active{transform:scale(.96)}
+.stat-card,.hero-card,.tip-card{transition:transform .18s ease}

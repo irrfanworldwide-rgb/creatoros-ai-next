@@ -66,7 +66,9 @@ export default function RootLayout({
       <body>
         <AppBoot>
           <SessionProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              <div className="app-shell">{children}</div>
+            </ToastProvider>
           </SessionProvider>
         </AppBoot>
       </body>

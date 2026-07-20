@@ -44,33 +44,31 @@ export default function SubscriptionModal({ isOpen, onClose }: SubscriptionModal
         return;
       }
 
-      const orderRes = await fetch("/api/payments/create-order", {
+      const subRes = await fetch("/api/payments/create-subscription", {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      const orderData = await orderRes.json();
-      if (!orderRes.ok) {
-        setError(orderData.error || "Could not start checkout. Please try again.");
+      const subData = await subRes.json();
+      if (!subRes.ok) {
+        setError(subData.error || "Could not start checkout. Please try again.");
         setSubmitting(false);
         return;
       }
 
       const razorpay = new RazorpayCtor({
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        order_id: orderData.orderId,
+        subscription_id: subData.subscriptionId,
         name: "CreatorOS AI",
-        description: "Pro Plan — Unlimited Generations",
+        description: "Pro Plan — ₹299/month, auto-renews until cancelled",
         prefill: { email: user.email || "" },
         theme: { color: "#7C3AED" },
         handler: async (response: {
-          razorpay_order_id: string;
           razorpay_payment_id: string;
+          razorpay_subscription_id: string;
           razorpay_signature: string;
         }) => {
           try {
-            const verifyRes = await fetch("/api/payments/verify", {
+            const verifyRes = await fetch("/api/payments/verify-subscription", {
               method: "POST",
               headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
               body: JSON.stringify(response),
@@ -104,7 +102,7 @@ export default function SubscriptionModal({ isOpen, onClose }: SubscriptionModal
 
   return (
     <div className="modal-overlay open" onClick={onClose}>
-      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-box glass-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-close" onClick={onClose}>
           ✕
         </div>
@@ -137,14 +135,17 @@ export default function SubscriptionModal({ isOpen, onClose }: SubscriptionModal
             </ul>
           </div>
         </div>
+        <p style={{ fontSize: "11px", color: "var(--text3)", textAlign: "center", margin: "0 1.25rem .75rem" }}>
+          Auto-renews monthly at ₹299 until cancelled. Cancel anytime from your Profile.
+        </p>
         {error && (
           <div className="sub-limit-note" style={{ margin: "0 1.25rem .5rem" }}>
             {error}
           </div>
         )}
         <div className="sub-modal-actions">
-          <button className="sub-up-btn" disabled={submitting} onClick={handleUpgradeClick}>
-            {submitting ? "Please wait..." : "Upgrade to Pro — ₹299/mo"}
+          <button className="sub-up-btn ripple-container" disabled={submitting} onClick={handleUpgradeClick}>
+            {submitting ? "Please wait..." : "Subscribe to Pro — ₹299/mo"}
           </button>
           <button className="sub-skip-btn" onClick={onClose} disabled={submitting}>
             Maybe later

@@ -135,6 +135,54 @@ after paying, before the callback fires), Razorpay also supports webhooks
 you could add later as a belt-and-suspenders backstop; not required for
 the current flow to be secure or correct.
 
+## 2c. Recurring subscriptions setup (Phase 9 — auto-renewing Pro)
+The Pro upgrade now uses real Razorpay **Subscriptions** (auto-charges
+₹299 every month until cancelled), not a one-time payment. Three more
+things are required beyond §2b:
+
+**1. Create a Plan in Razorpay Dashboard** (if you haven't already):
+Subscriptions → Plans → Create Plan — ₹299, Monthly, quantity-based
+"per unit" is fine as long as quantity is always 1 (which the app
+always sends). Copy the Plan ID (`plan_XXXXXXXXXXXXXX`) into:
+```
+RAZORPAY_PLAN_ID=plan_XXXXXXXXXXXXXX
+```
+
+**2. Register the webhook** — this is what makes renewals, failures, and
+cancellations actually update your database, since those happen without
+the user's browser being open. Razorpay Dashboard → Settings → Webhooks
+→ Add New Webhook:
+- **URL:** `https://<your-domain>/api/payments/webhook` (for local dev,
+  use a tunnel like `ngrok http 3000` and use its HTTPS URL — Razorpay
+  can't reach `localhost` directly)
+- **Active events:** `subscription.activated`, `subscription.charged`,
+  `subscription.pending`, `subscription.halted`, `subscription.cancelled`,
+  `subscription.completed`
+- Razorpay gives you a **Webhook Secret** when you save this — copy it
+  into:
+```
+RAZORPAY_WEBHOOK_SECRET=whsec_or_similar_string
+```
+This is a **different secret** from `RAZORPAY_KEY_SECRET` — don't mix
+them up.
+
+**3. Get your Supabase service-role key** — the webhook is a
+server-to-server call from Razorpay with no user browser session to
+authenticate as, so it's the one place in this app that uses Supabase's
+service-role key (which bypasses Row Level Security) instead of a
+user-scoped client. Supabase Dashboard → Settings → API → `service_role`
+key (it's labeled "secret", shown separately from the public `anon`
+key):
+```
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+```
+**Never** prefix this with `NEXT_PUBLIC_` or expose it anywhere else —
+it grants full database access, ignoring every RLS policy.
+
+**4. Run the updated schema** (§5 below) — adds subscription-tracking
+columns to `profiles`, extends `payments`, and adds a `webhook_events`
+idempotency table.
+
 ## 3. Run it
 ```
 npm run dev
@@ -203,6 +251,17 @@ it's safe to run even if some tables already exist — it won't drop data.
 - [ ] Clicking "Upgrade to Pro" opens Razorpay checkout
 - [ ] Completing a test payment (card `4111 1111 1111 1111`) upgrades the
       plan badge to "Pro" without a page reload
+- [ ] `RAZORPAY_PLAN_ID`, `RAZORPAY_WEBHOOK_SECRET`, and
+      `SUPABASE_SERVICE_ROLE_KEY` are filled in (§2c)
+- [ ] Webhook registered in Razorpay Dashboard pointing at
+      `/api/payments/webhook` with the six subscription events enabled
+- [ ] Profile page shows Current Plan, Status, Next Billing Date, and
+      Auto-Renew after subscribing
+- [ ] "Cancel Subscription" turns Auto-Renew to "Off" but Status stays
+      "Active (ending soon)" — not immediately downgraded to Free
+- [ ] Sending Razorpay's test `subscription.charged` webhook event (from
+      Dashboard → Webhooks → your webhook → "Send Test Webhook") updates
+      `subscription_current_end` in `profiles` without error
 
 ## Troubleshooting
 | Symptom | Likely cause |
@@ -219,3 +278,9 @@ it's safe to run even if some tables already exist — it won't drop data.
 | Razorpay checkout opens but rejects the key | Using a live key in test mode or vice versa — key prefix (`rzp_test_` / `rzp_live_`) must match the mode you're testing in |
 | "Payment signature verification failed" | Should only happen on tampered/replayed requests — if it happens on a genuine payment, double-check `RAZORPAY_KEY_SECRET` matches the same account that issued `NEXT_PUBLIC_RAZORPAY_KEY_ID` |
 | Plan upgraded but no `payments` row | The `payments` table doesn't exist yet — run `supabase/schema.sql` (§5). The upgrade itself is unaffected. |
+| Subscription checkout fails immediately | `RAZORPAY_PLAN_ID` missing or wrong — see §2c step 1 |
+| Plan activates on payment but reverts to Free shortly after with no explanation | Webhook is misconfigured or unreachable — check Razorpay Dashboard → Webhooks → your webhook for delivery failures, and confirm `RAZORPAY_WEBHOOK_SECRET` matches what's shown there |
+| Webhook returns 500 with "SUPABASE_SERVICE_ROLE_KEY is not set" | Missing from `.env.local`/hosting env vars — see §2c step 3 |
+| Webhook returns 400 "Invalid signature" for genuine Razorpay requests | Almost always `RAZORPAY_WEBHOOK_SECRET` mismatch — regenerate it in Razorpay Dashboard and update both places |
+| Renewal seems to process twice / duplicate `payments` rows | Shouldn't happen — `webhook_events` (unique `razorpay_event_id`) and `payments` (unique `razorpay_payment_id`) both guard against this. If you see it, check whether `supabase/schema.sql`'s `webhook_events` table actually got created. |
+| Local webhook testing | Razorpay can't reach `localhost` — use `ngrok http 3000` (or similar) and register the tunnel's HTTPS URL as your webhook endpoint while developing |

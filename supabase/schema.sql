@@ -19,6 +19,13 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
+-- Recurring subscription tracking (added for real auto-renewing
+-- Razorpay Subscriptions, on top of the existing one-time-order flow).
+-- IF NOT EXISTS makes this safe to run against your existing table.
+alter table public.profiles add column if not exists razorpay_subscription_id text;
+alter table public.profiles add column if not exists subscription_status text;
+alter table public.profiles add column if not exists subscription_current_end timestamptz;
+
 alter table public.profiles enable row level security;
 
 drop policy if exists "profiles: select own" on public.profiles;
@@ -90,18 +97,27 @@ create policy "generations: delete own" on public.generations
   for delete using (auth.uid() = user_id);
 
 -- ============================================================
--- payments — audit trail for Razorpay upgrades (Phase 5)
+-- payments — audit trail for Razorpay upgrades (Phase 5) +
+-- recurring subscription charges (Phase 9)
 -- ============================================================
 create table if not exists public.payments (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  razorpay_order_id text not null,
+  razorpay_order_id text,
   razorpay_payment_id text not null unique,
+  razorpay_subscription_id text,
   status text not null default 'paid',
   created_at timestamptz not null default now()
 );
 
+-- Existing production tables created before Phase 9 won't have these
+-- columns yet, or may have razorpay_order_id as NOT NULL from Phase 5 —
+-- these statements bring them up to date without dropping data.
+alter table public.payments add column if not exists razorpay_subscription_id text;
+alter table public.payments alter column razorpay_order_id drop not null;
+
 create index if not exists payments_user_idx on public.payments (user_id, created_at desc);
+create index if not exists payments_subscription_idx on public.payments (razorpay_subscription_id);
 
 alter table public.payments enable row level security;
 
@@ -112,6 +128,20 @@ create policy "payments: select own" on public.payments
 drop policy if exists "payments: insert own" on public.payments;
 create policy "payments: insert own" on public.payments
   for insert with check (auth.uid() = user_id);
+
+-- ============================================================
+-- webhook_events — idempotency guard so a duplicate/retried Razorpay
+-- webhook delivery (which Razorpay does on purpose for reliability) can
+-- never be processed twice. No RLS needed — only the service-role
+-- client (used exclusively by the webhook route) ever touches this
+-- table; it holds no user-readable data of its own.
+-- ============================================================
+create table if not exists public.webhook_events (
+  id uuid primary key default gen_random_uuid(),
+  razorpay_event_id text not null unique,
+  event_type text not null,
+  processed_at timestamptz not null default now()
+);
 
 -- ============================================================
 -- OPTIONAL: auto-create a profile row on signup via a DB trigger,

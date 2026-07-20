@@ -396,6 +396,93 @@ plain DOM helper, no animation library added.
 itself is still the pre-redesign layout; only its send-button behavior
 changed in this phase. Full mobile-first redesign is Phase 9.
 
+### ✅ Phase 9 (this delivery) — Recurring subscriptions + mobile/responsive pass
+Two large, mostly-independent pieces of work.
+
+**Real recurring subscriptions (replaces the one-time-payment flow):**
+- `lib/razorpay/client.ts` — added `createRazorpaySubscription()`,
+  `verifyRazorpaySubscriptionSignature()` (note: subscription checkout
+  signatures use `payment_id + "|" + subscription_id`, the reverse order
+  from the one-time-order flow's `order_id + "|" + payment_id` — mixing
+  these up is the most common integration bug, called out explicitly in
+  a code comment), and `verifyRazorpayWebhookSignature()` (a separate
+  secret from the API key pair, computed over the **raw** request body).
+- `app/api/payments/create-subscription/route.ts` — creates a Razorpay
+  Subscription against your Plan (`RAZORPAY_PLAN_ID`), 120 billing
+  cycles (10 years — effectively unlimited for a monthly plan, cancel
+  anytime before then).
+- `app/api/payments/verify-subscription/route.ts` — verifies the first
+  payment's signature, activates Pro immediately for a responsive UI.
+- `app/api/payments/webhook/route.ts` — the actual source of truth for
+  the subscription's ongoing lifecycle, since renewals/failures/
+  cancellations happen with no browser open to call an API route from:
+  - Verifies the raw-body signature before trusting anything
+  - **Idempotent**: records each `razorpay_event_id` in a new
+    `webhook_events` table before acting, so Razorpay's intentional
+    retry-on-failure delivery can never double-apply an effect
+  - `subscription.activated` / `.charged` → plan stays/becomes "pro",
+    logs the payment, updates `subscription_current_end`
+  - `subscription.pending` → renewal charge failed but Razorpay is
+    retrying; keeps Pro access, surfaces a "payment issue" state so the
+    user isn't caught by surprise later
+  - `subscription.cancelled` / `.halted` / `.completed` / `.expired` →
+    downgrades to "free"
+  - Uses `lib/supabase/serviceClient.ts` (new) — the **one** legitimate
+    use of a Supabase service-role key anywhere in this app, since a
+    server-to-server webhook call has no user session to scope a normal
+    request to. Every other write in the entire app still deliberately
+    avoids this and uses a user-scoped client instead.
+- `app/api/payments/cancel-subscription/route.ts` — uses Razorpay's
+  `cancel_at_cycle_end`, so cancelling stops future billing but Pro
+  access continues until the current paid period actually ends, per
+  your requirement.
+- `components/SubscriptionModal.tsx` — rewritten to open subscription
+  checkout (`subscription_id`) instead of order checkout (`order_id`).
+- `app/profile/page.tsx` — new "Subscription" section: Current Plan,
+  Status, Next Billing Date, Auto-Renew, and a two-tap "Cancel
+  Subscription" button (guards against accidental taps without needing
+  a whole new confirmation modal).
+- `supabase/schema.sql` — `profiles` gains
+  `razorpay_subscription_id` / `subscription_status` /
+  `subscription_current_end`; `payments` gains
+  `razorpay_subscription_id` and `razorpay_order_id` is now nullable
+  (subscription-driven charges don't have an order id); new
+  `webhook_events` table. All additive `alter table ... add column if
+  not exists` — safe to run against your existing production tables.
+- The old one-time order flow (`create-order`/`verify` routes,
+  `createRazorpayOrder`/`verifyRazorpaySignature`) is untouched and still
+  present, just no longer called by the UI — nothing was deleted.
+
+**Three new env vars required** — see `SETUP.md` §2c:
+`RAZORPAY_PLAN_ID`, `RAZORPAY_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`.
+**The webhook must be registered in Razorpay's Dashboard** pointing at
+`/api/payments/webhook` — the subscription system does not work
+correctly without it (the first payment activates Pro via the checkout
+callback, but renewals/failures/cancellations have no other way to reach
+your database).
+
+**Mobile-first + responsive pass:**
+- `app/globals.css` — large additive block: safe-area padding (notch/
+  home-indicator devices) for bottom nav and chat input, `.glass-modal`
+  (glassmorphism for the upgrade modal), touch-target minimums (~44px)
+  on every previously-undersized tappable control, smooth scrolling,
+  tablet breakpoint (≥640px: 3-column tool grids), desktop breakpoint
+  (≥1024px: centers the phone-width layout in a fixed 480px column with
+  a shadow, rather than stretching a mobile design full-bleed across a
+  monitor), and subtle press/hover micro-interactions on cards.
+- `app/layout.tsx` — added an explicit `.app-shell` wrapper div so the
+  desktop-centering CSS has something reliable to target (App Router has
+  no equivalent of Pages Router's `#__next`).
+- `app/chat/page.tsx` — added a `chat-screen` class so the flex-fill
+  layout fix (chat area fills all available height, no dead space,
+  input pinned above the bottom nav) works via a real class rather than
+  the newer `:has()` CSS selector, for broader older-Android-WebView
+  compatibility.
+- Every existing page's markup/structure is unchanged — this phase is
+  CSS-only plus the two small structural additions above.
+
+No new npm dependencies in either half of this phase.
+
 ## Optional follow-ups (not blockers, listed in PRODUCTION_AUDIT.md)
 - Dedicated rate limiting (e.g. Upstash Ratelimit) in front of
   `/api/generate` for scale beyond what the per-user daily cap covers.

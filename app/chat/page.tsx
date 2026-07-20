@@ -75,7 +75,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="screen active">
+    <div className="screen active chat-screen">
       <div className="chat-header">
         <h1>AI Chat</h1>
         <button className="chat-new-btn" onClick={handleNewChat}>
