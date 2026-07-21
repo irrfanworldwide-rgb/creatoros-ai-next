@@ -484,6 +484,37 @@ your database).
 No new npm dependencies in either half of this phase.
 
 ### ✅ Phase 10 (this delivery) — Admin Panel foundation
+
+**Post-delivery hotfix 1 — duplicate routes:** the Phase 10 route-group
+restructure (moving every user page into `app/(app)/`) was correct in
+the zip itself, but if that zip was extracted **on top of** an existing
+project folder from before the restructure, the old un-grouped files
+(`app/privacy/page.tsx`, `app/profile/page.tsx`, etc.) would still be
+sitting on disk alongside the new `app/(app)/...` versions — most unzip
+tools only add/overwrite, they never delete. Both resolving to the same
+URL is exactly what Next.js's "two parallel pages" build error catches.
+Fix was on the delivery/extraction side, not the code — always extract a
+new zip into a clean/empty directory rather than over an existing one.
+
+**Post-delivery hotfix 2 — `useSession must be used within
+SessionProvider` during build:** after the duplicate-routes fix,
+`next build` failed while statically prerendering `/`. Verified
+exhaustively (every `useSession()` call site checked against the
+provider tree, plus `not-found.tsx`/`error.tsx`/`global-error.tsx`/the
+entire `/admin` tree checked for accidental cross-contamination) that
+the component tree itself was correctly nested — this was a known
+Next.js App Router quirk where a Context Provider defined in a
+route-group layout (`app/(app)/layout.tsx`) can fail specifically during
+**build-time static prerendering**, even though the runtime tree is
+correct, because static generation renders the page before any real
+request context exists. Fixed with `export const dynamic =
+"force-dynamic"` on `app/(app)/layout.tsx`, which applies to every page
+in the group — appropriate here since every one of those pages is
+session-aware/per-visitor-different anyway, so nothing meaningful was
+lost by opting out of static generation. The admin dashboard already had
+the same setting from earlier in Phase 10 for the same class of reason
+(it does live DB queries, never static).
+
 **Scope note:** your Phase 10 request combined what we'd earlier agreed
 would be two phases (foundation, then the full dashboard). I built the
 security-critical foundation plus the highest-value, most tractable
