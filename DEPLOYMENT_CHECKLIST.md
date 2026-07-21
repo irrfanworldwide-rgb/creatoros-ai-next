@@ -36,6 +36,7 @@ variable from `.env.example` with your **real production values**:
 | `RAZORPAY_PLAN_ID` | Your live Plan ID (a Plan created with test keys won't work with live keys — create it again under live mode) |
 | `RAZORPAY_WEBHOOK_SECRET` | From the **production** webhook you register in step 3a below — different from any secret used in local dev |
 | `SUPABASE_SERVICE_ROLE_KEY` | From Supabase Dashboard → Settings → API — mark as "Sensitive" in Vercel's UI, never expose this |
+| `ADMIN_SESSION_SECRET` | Generate a **new** one for production (`openssl rand -hex 32`) — don't reuse your local dev value. Mark as "Sensitive". |
 | `NEXT_PUBLIC_SITE_URL` | Your production domain, e.g. `https://creatoros.ai` — used for SEO metadata, sitemap, and OAuth redirect matching |
 
 Set these for the **Production** environment at minimum; add them to
@@ -76,8 +77,20 @@ not your app's domain).
 ## 6. Run the database schema (if not already applied)
 Supabase Dashboard → SQL Editor → paste `supabase/schema.sql` → Run.
 Safe to run even if some tables already exist (`create table if not
-exists` throughout). The `payments` table is the one most likely to be
-new for your production project — see `PRODUCTION_AUDIT.md`.
+exists` throughout). The `payments`, `webhook_events`, and all
+`admin_*`/`settings` tables are the ones most likely to be new for your
+production project — see `PRODUCTION_AUDIT.md`.
+
+## 6a. Create your production admin account
+```
+node scripts/create-admin.mjs <username> <strong-password> superadmin
+```
+Run this with `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
+set to your **production** values (export them in your local shell
+temporarily, or run from wherever you manage secrets) — this creates a
+row directly in your production `admin_users` table. Use a strong,
+unique password; this account can suspend/delete users and manage
+subscriptions and revenue data.
 
 ## 7. Deploy
 Click Deploy in Vercel. First build should complete with no errors.
@@ -103,20 +116,30 @@ Run through this on the live URL before announcing launch:
 - [ ] Click "Cancel Subscription" (tap twice to confirm) → Auto-Renew
       flips to Off, Status shows "Active (ending soon)", plan stays Pro
 - [ ] Visit `/robots.txt` and `/sitemap.xml` on the live domain — confirm
-      they resolve and list the expected URLs
+      they resolve and list the expected URLs (and that `/admin` is
+      listed as disallowed)
+- [ ] Log in at `/admin/login` with your production admin account,
+      confirm the dashboard shows real numbers
+- [ ] Visit `/admin` in a private/incognito window (no cookie) — confirm
+      it redirects to `/admin/login`, doesn't leak any data
 - [ ] Test on an actual phone, not just a resized browser window
 
 ## 9. Optional hardening for scale
 Not required for launch, but worth planning for:
 - Dedicated rate limiting (e.g. Upstash Ratelimit) in front of
   `/api/generate` if usage grows beyond what the per-user daily cap
-  reasonably prevents.
+  reasonably prevents. The admin login rate limit (§Phase 10) is
+  currently a simple database-lookback check, not a true distributed
+  rate limiter — fine at small scale, worth upgrading if you have many
+  admins or see credential-stuffing attempts.
 - Razorpay webhook as a secondary confirmation path for the rare case of
   a user closing the tab immediately after a successful payment before
   the checkout callback fires (current flow is secure and correct
   without this — see `PRODUCTION_AUDIT.md`).
 - Uptime monitoring / error tracking (e.g. Sentry) wired into
   `app/error.tsx` and `app/global-error.tsx`'s `console.error` calls.
+- 2FA for admin accounts — `admin_users.totp_secret` column exists for
+  this, but no verification step is wired in yet (Phase 11+).
 
 ## Rollback
 Vercel keeps every deployment — if something breaks, use Vercel →

@@ -10,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
       // /tools/[id] pages are publicly viewable (login-gated only for
       // actually generating) and are decent SEO landing pages per tool,
       // so only the auth-gated screens are blocked, not tool subpages.
-      disallow: ["/api/", "/home", "/tools$", "/chat", "/library", "/profile"],
+      disallow: ["/api/", "/home", "/tools$", "/chat", "/library", "/profile", "/admin"],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

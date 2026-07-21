@@ -18,6 +18,7 @@ export interface Profile {
   razorpay_subscription_id: string | null;
   subscription_status: SubscriptionStatus;
   subscription_current_end: string | null;
+  suspended: boolean;
 }
 
 export interface GenerationRecord {

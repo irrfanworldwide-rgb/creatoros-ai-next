@@ -183,6 +183,53 @@ it grants full database access, ignoring every RLS policy.
 columns to `profiles`, extends `payments`, and adds a `webhook_events`
 idempotency table.
 
+## 2d. Admin Panel setup (Phase 10)
+The Admin Panel (`/admin`) is completely separate from user auth — it
+has its own login system, its own database table, and its own session
+cookie. Setup:
+
+**1. Generate an admin session secret:**
+```
+openssl rand -hex 32
+```
+Put the result in `.env.local`:
+```
+ADMIN_SESSION_SECRET=<the generated value>
+```
+
+**2. Run the updated schema** (§5 below) — adds `admin_users`,
+`admin_logs`, `admin_login_attempts`, `settings`, and a `suspended`
+column on `profiles`.
+
+**3. Create your first admin account** — there's deliberately no signup
+UI for this (an admin-creates-admin form would be a chicken-and-egg
+security hole for the very first account). Use the bootstrap script:
+```
+node scripts/create-admin.mjs <username> <password> [admin|superadmin]
+```
+This needs `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in
+your environment (the same values already in `.env.local` — if running
+locally with a tool that doesn't auto-load `.env.local` for plain `node`
+scripts, export them in your shell first, or run via
+`node -r dotenv/config scripts/create-admin.mjs ...` after
+`npm install dotenv --save-dev` if you want that convenience).
+
+Example:
+```
+node scripts/create-admin.mjs owner "a-strong-password-here" superadmin
+```
+
+**4. Log in** at `/admin/login` with those credentials.
+
+**What's in Phase 10 vs. deferred to Phase 11:** the foundation
+(auth, RBAC, middleware protection, audit logging), live Dashboard,
+User Management, Subscription Management, a Security page (login
+attempts + audit log), and one Settings item (Maintenance Mode) are all
+real and working. Tool Management, Coupons, a Contact/Feedback inbox,
+full AI cost/token analytics, the Announcement banner system, and the
+rest of Settings (price, free limit, branding, AI provider switching via
+UI) are intentionally not in this phase — see `MIGRATION.md` for why.
+
 ## 3. Run it
 ```
 npm run dev
@@ -262,6 +309,23 @@ it's safe to run even if some tables already exist — it won't drop data.
 - [ ] Sending Razorpay's test `subscription.charged` webhook event (from
       Dashboard → Webhooks → your webhook → "Send Test Webhook") updates
       `subscription_current_end` in `profiles` without error
+- [ ] `ADMIN_SESSION_SECRET` is filled in
+- [ ] `node scripts/create-admin.mjs ...` successfully created an account
+- [ ] Visiting `/admin` while logged out (or with an invalid/no cookie)
+      redirects to `/admin/login` — try it in a private/incognito window
+- [ ] Logging in at `/admin/login` with wrong credentials shows an error
+      and does NOT set a session cookie (check DevTools → Application →
+      Cookies)
+- [ ] 6 consecutive failed logins for the same username get blocked
+      ("Too many failed attempts") — the 6th attempt should 429
+- [ ] Dashboard stat cards show real numbers matching what you'd expect
+      from your test data (not all zero unless your DB is actually empty)
+- [ ] Suspending a test user from `/admin/users` actually blocks them —
+      log in as that user in a different browser/session and confirm
+      they're signed out with a "suspended" message
+- [ ] Enabling Maintenance Mode in `/admin/settings` shows the
+      maintenance page to a normal user, while `/admin` itself stays
+      reachable so you can turn it back off
 
 ## Troubleshooting
 | Symptom | Likely cause |
@@ -284,3 +348,7 @@ it's safe to run even if some tables already exist — it won't drop data.
 | Webhook returns 400 "Invalid signature" for genuine Razorpay requests | Almost always `RAZORPAY_WEBHOOK_SECRET` mismatch — regenerate it in Razorpay Dashboard and update both places |
 | Renewal seems to process twice / duplicate `payments` rows | Shouldn't happen — `webhook_events` (unique `razorpay_event_id`) and `payments` (unique `razorpay_payment_id`) both guard against this. If you see it, check whether `supabase/schema.sql`'s `webhook_events` table actually got created. |
 | Local webhook testing | Razorpay can't reach `localhost` — use `ngrok http 3000` (or similar) and register the tunnel's HTTPS URL as your webhook endpoint while developing |
+| `/admin` redirects to `/admin/login` even right after logging in | `ADMIN_SESSION_SECRET` missing — the session cookie can't be created/verified without it |
+| `create-admin.mjs` fails with a Supabase error | `SUPABASE_SERVICE_ROLE_KEY` / `NEXT_PUBLIC_SUPABASE_URL` not available to plain `node` (they're not auto-loaded outside Next.js) — export them in your shell first |
+| Dashboard shows all zeros | Expected on a fresh/empty database — sign up a few test users and generate some content, or double-check `SUPABASE_SERVICE_ROLE_KEY` is actually set (dashboard queries silently return empty on an RLS-denied query rather than erroring) |
+| Suspended user can still use the app | They need to trigger a fresh session load to pick up the change (e.g. reload the page) — suspension is checked when the profile loads, not via a live push |

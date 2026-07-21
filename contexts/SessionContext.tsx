@@ -31,6 +31,18 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const loadForUser = useCallback(async (u: User) => {
     const sb = getSupabaseBrowserClient();
     const [p, usage] = await Promise.all([ensureProfile(sb, u), getTodayUsage(sb, u.id)]);
+    if (p.suspended) {
+      try {
+        sessionStorage.setItem("creatoros_suspended", "1");
+      } catch {
+        // non-critical
+      }
+      await sb.auth.signOut();
+      setProfile(null);
+      setUser(null);
+      setUsageToday(0);
+      return;
+    }
     setProfile(p);
     setUsageToday(usage);
   }, []);

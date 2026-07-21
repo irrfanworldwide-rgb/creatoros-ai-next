@@ -483,6 +483,99 @@ your database).
 
 No new npm dependencies in either half of this phase.
 
+### ✅ Phase 10 (this delivery) — Admin Panel foundation
+**Scope note:** your Phase 10 request combined what we'd earlier agreed
+would be two phases (foundation, then the full dashboard). I built the
+security-critical foundation plus the highest-value, most tractable
+pieces to real production quality — Dashboard, User Management,
+Subscription Management, a Security page, and one Settings item
+(Maintenance Mode) — rather than ship shallow stubs across all 15
+requested sections. Tool Management, Coupons, a Contact/Feedback inbox,
+full AI cost/token analytics, the Announcement banner system, and the
+rest of Settings (price/limit/branding/AI provider via UI) are deferred
+to Phase 11 — each needs either new storage infrastructure (file
+uploads, a dynamic tools system replacing the static `data/tools.ts`) or
+wiring into the checkout/generation flow, and deserved their own pass
+rather than being rushed.
+
+**Structural change (required, URLs unaffected):** moved every existing
+user-facing route into an `app/(app)/` route group so the Admin Panel
+could have its own full-width layout instead of inheriting the phone-
+width `.app-shell` constraint from Phase 9. Route groups don't affect
+URLs — `app/(app)/home/page.tsx` still serves `/home` exactly as before.
+`app/(app)/layout.tsx` now holds what used to be in the root layout
+(SessionProvider, ToastProvider, AppBoot, the `.app-shell` div); root
+`app/layout.tsx` is trimmed to fonts/metadata/html/body only.
+
+**Admin authentication — separate from user auth entirely:**
+- `lib/admin/password.ts` — Node's built-in `scrypt` for password
+  hashing (no new dependency like bcrypt needed).
+- `lib/admin/session.ts` — signed session tokens via the Web Crypto API
+  (`crypto.subtle`), deliberately NOT Node's `crypto` module, because
+  this same code has to run in both Node.js API routes AND Edge
+  middleware, and only Web Crypto is available in both.
+- `middleware.ts` (project root) — protects every `/admin/*` page AND
+  every `/api/admin/*` route at the edge, before any page/route code
+  runs. This is what makes direct-URL bypass impossible: an invalid or
+  missing session redirects (pages) or 401s (API routes) before
+  anything else executes.
+- `app/admin/(protected)/layout.tsx` — re-verifies the session
+  server-side as defense in depth on top of middleware.
+- `scripts/create-admin.mjs` — one-time CLI bootstrap for the first
+  admin account (there's intentionally no in-app "create admin" form —
+  that would be a chicken-and-egg security hole for the very first
+  account).
+- Login rate-limiting: 5 failed attempts per username per 15 minutes,
+  same generic error message for "wrong password" and "username doesn't
+  exist" (no username enumeration), every attempt logged.
+
+**Dashboard:** `lib/admin/stats.ts` computes all ten requested stat
+cards from real Supabase data via the service-role client (the only way
+to see across all users — a normal user-scoped client is blocked by RLS
+by design). Two growth charts (`components/admin/AdminChart.tsx`) via
+plain inline SVG — no charting library dependency added.
+
+**User Management:** list/search (by email)/filter (plan, suspension
+status)/suspend/reactivate/delete/upgrade/downgrade/reset daily limit —
+all real, all audit-logged. Suspension is actually **enforced**:
+`contexts/SessionContext.tsx` checks `profile.suspended` on every
+session load and signs the user out immediately if true, surfacing the
+reason via a toast on landing (same sessionStorage-flag pattern as the
+Phase 8 upgrade-intent flow). Deletion uses
+`supabase.auth.admin.deleteUser()`, which cascades to
+profiles/daily_usage/generations/payments automatically via their
+existing foreign keys.
+
+**Subscription Management:** list all subscriptions with status/next
+billing/last payment, manual activate (comp/support cases, no payment
+required), extend by N days, downgrade, and real Razorpay cancellation
+(same `cancel_at_cycle_end` approach as the user-facing cancel button).
+
+**Security page:** recent login attempts (success and failure) and the
+full admin action audit log, both real tables populated by every admin
+action taken anywhere in the panel.
+
+**Settings — Maintenance Mode only this phase:** a `settings` key/value
+table (more settings land as new rows later, no schema change needed).
+`components/MaintenanceGate.tsx` checks `/api/settings` (a public,
+read-only, single-boolean endpoint — deliberately exposes nothing else)
+on every app load and shows a maintenance page to regular users when
+enabled; `/admin` is a separate route tree and stays reachable so the
+toggle can be turned back off.
+
+**Database:** `admin_users`, `admin_logs`, `admin_login_attempts`,
+`settings` — all with RLS **enabled and zero policies** (default deny
+for every normal user request; only the service-role client, used
+exclusively by already-authenticated admin routes, can ever touch
+them). `profiles` gains a `suspended` column.
+
+**New env vars** — see `SETUP.md` §2d: `ADMIN_SESSION_SECRET`. (The
+service-role key from Phase 9 is reused, now also powering every admin
+route.)
+
+No new npm dependencies — password hashing, session signing, and charts
+all use built-ins (Node's `crypto`, the Web Crypto API, and plain SVG).
+
 ## Optional follow-ups (not blockers, listed in PRODUCTION_AUDIT.md)
 - Dedicated rate limiting (e.g. Upstash Ratelimit) in front of
   `/api/generate` for scale beyond what the per-user daily cap covers.

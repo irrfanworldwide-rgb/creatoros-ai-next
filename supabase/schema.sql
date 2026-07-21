@@ -164,3 +164,75 @@ create table if not exists public.webhook_events (
 -- create trigger on_auth_user_created
 --   after insert on auth.users
 --   for each row execute procedure public.handle_new_user();
+
+-- ============================================================
+-- PHASE 10 — Admin Panel foundation
+--
+-- SECURITY NOTE: none of the tables below have any RLS policies —
+-- Row Level Security is ENABLED with zero policies, which means DEFAULT
+-- DENY for every normal (anon/authenticated user) request. These tables
+-- are only ever read/written by lib/supabase/serviceClient.ts (the
+-- service-role client, which bypasses RLS entirely by design) from
+-- admin API routes that have already verified an admin session via
+-- middleware.ts + lib/admin/session.ts. A regular logged-in user's
+-- Supabase client can NEVER see these tables, at any layer.
+-- ============================================================
+
+-- ---- profiles: add a suspension flag (admin-facing user management) ----
+alter table public.profiles add column if not exists suspended boolean not null default false;
+
+-- ---- admin_users ----
+create table if not exists public.admin_users (
+  id uuid primary key default gen_random_uuid(),
+  username text not null unique,
+  password_hash text not null,
+  password_salt text not null,
+  role text not null default 'admin' check (role in ('admin', 'superadmin')),
+  -- 2FA-ready: nullable TOTP secret. Not enforced yet (no verification
+  -- step wired into login), but the column exists so a future phase can
+  -- add TOTP verification without a schema migration.
+  totp_secret text,
+  created_at timestamptz not null default now(),
+  last_login_at timestamptz
+);
+alter table public.admin_users enable row level security;
+-- No policies — see SECURITY NOTE above.
+
+-- ---- admin_login_attempts (security dashboard: failed logins) ----
+create table if not exists public.admin_login_attempts (
+  id uuid primary key default gen_random_uuid(),
+  username text not null,
+  success boolean not null,
+  ip_address text,
+  created_at timestamptz not null default now()
+);
+create index if not exists admin_login_attempts_created_idx on public.admin_login_attempts (created_at desc);
+alter table public.admin_login_attempts enable row level security;
+
+-- ---- admin_logs (audit trail: every admin action) ----
+create table if not exists public.admin_logs (
+  id uuid primary key default gen_random_uuid(),
+  admin_id uuid references public.admin_users(id) on delete set null,
+  admin_username text,
+  action text not null,
+  target_type text,
+  target_id text,
+  details jsonb,
+  ip_address text,
+  created_at timestamptz not null default now()
+);
+create index if not exists admin_logs_created_idx on public.admin_logs (created_at desc);
+alter table public.admin_logs enable row level security;
+
+-- ---- settings (single-row site config — Phase 10 ships Maintenance
+-- Mode only; more settings land in Phase 11 without needing a new
+-- migration, just a new key in this table) ----
+create table if not exists public.settings (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz not null default now()
+);
+insert into public.settings (key, value)
+  values ('maintenance_mode', 'false'::jsonb)
+  on conflict (key) do nothing;
+alter table public.settings enable row level security;
