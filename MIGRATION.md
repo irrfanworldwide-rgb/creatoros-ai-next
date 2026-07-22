@@ -498,22 +498,30 @@ new zip into a clean/empty directory rather than over an existing one.
 
 **Post-delivery hotfix 2 — `useSession must be used within
 SessionProvider` during build:** after the duplicate-routes fix,
-`next build` failed while statically prerendering `/`. Verified
-exhaustively (every `useSession()` call site checked against the
-provider tree, plus `not-found.tsx`/`error.tsx`/`global-error.tsx`/the
-entire `/admin` tree checked for accidental cross-contamination) that
-the component tree itself was correctly nested — this was a known
-Next.js App Router quirk where a Context Provider defined in a
-route-group layout (`app/(app)/layout.tsx`) can fail specifically during
-**build-time static prerendering**, even though the runtime tree is
-correct, because static generation renders the page before any real
-request context exists. Fixed with `export const dynamic =
-"force-dynamic"` on `app/(app)/layout.tsx`, which applies to every page
-in the group — appropriate here since every one of those pages is
-session-aware/per-visitor-different anyway, so nothing meaningful was
-lost by opting out of static generation. The admin dashboard already had
-the same setting from earlier in Phase 10 for the same class of reason
-(it does live DB queries, never static).
+`next build` still failed prerendering `/`, with the stack trace
+pointing at the compiled `app/page.js` output. The first attempted fix
+(`export const dynamic = "force-dynamic"` on `app/(app)/layout.tsx`)
+did not resolve it. **Real fix:** `SessionProvider` and `ToastProvider`
+moved from `app/(app)/layout.tsx` into the true root
+`app/layout.tsx`, so they now wrap *every* route in the app
+unconditionally — `(app)`, `/admin`, and any Next.js-generated fallback
+page — with no route-group boundary in between that could ever be
+skipped by the framework's build/fallback machinery. `app/(app)/layout.tsx`
+now only adds what's actually specific to the user-facing app: `AppBoot`
+(splash screen) and `MaintenanceGate`, deliberately still scoped there
+and NOT applied to `/admin`, since the admin panel needs to stay
+reachable during maintenance mode to turn it back off. The
+`force-dynamic` workaround was removed — no longer needed with the
+provider correctly at the true root.
+
+One accepted tradeoff from this change: `/admin` routes now also mount
+`SessionProvider` (harmlessly — it just checks for a regular user
+session in the background; admin pages never read from it) and, if
+`NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` are missing,
+`/admin` would show the same `ConfigError` screen as the rest of the
+app rather than staying independently reachable — an edge case (missing
+critical env vars is already a broken deployment either way), not a
+functional regression for any working deployment.
 
 **Scope note:** your Phase 10 request combined what we'd earlier agreed
 would be two phases (foundation, then the full dashboard). I built the
