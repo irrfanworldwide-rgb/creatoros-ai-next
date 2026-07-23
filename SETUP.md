@@ -207,12 +207,13 @@ security hole for the very first account). Use the bootstrap script:
 ```
 node scripts/create-admin.mjs <username> <password> [admin|superadmin]
 ```
-This needs `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in
-your environment (the same values already in `.env.local` — if running
-locally with a tool that doesn't auto-load `.env.local` for plain `node`
-scripts, export them in your shell first, or run via
-`node -r dotenv/config scripts/create-admin.mjs ...` after
-`npm install dotenv --save-dev` if you want that convenience).
+The script automatically reads `NEXT_PUBLIC_SUPABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY` from `.env.local` (falling back to `.env`)
+itself — no manual export, no `dotenv` package needed. It resolves
+those files relative to its own location, so it works the same whether
+you run it from the project root or elsewhere, on Windows, macOS, or
+Linux. If it can't find both variables, it prints exactly which paths
+it checked.
 
 Example:
 ```

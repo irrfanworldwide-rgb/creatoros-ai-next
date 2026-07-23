@@ -85,12 +85,23 @@ production project — see `PRODUCTION_AUDIT.md`.
 ```
 node scripts/create-admin.mjs <username> <strong-password> superadmin
 ```
-Run this with `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
-set to your **production** values (export them in your local shell
-temporarily, or run from wherever you manage secrets) — this creates a
-row directly in your production `admin_users` table. Use a strong,
-unique password; this account can suspend/delete users and manage
-subscriptions and revenue data.
+The script auto-loads `NEXT_PUBLIC_SUPABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY` from `.env.local`, but that file normally
+holds your **local dev** values, not production. Point it at production
+one of two ways:
+- Temporarily edit `.env.local` to your production values, run the
+  script, then change it back — simplest if you're doing this from a
+  machine that already has the project checked out.
+- Or export the production values in your shell first (real environment
+  variables always take precedence over anything in `.env.local`):
+  ```
+  export NEXT_PUBLIC_SUPABASE_URL="https://your-prod-project.supabase.co"
+  export SUPABASE_SERVICE_ROLE_KEY="your-prod-service-role-key"
+  node scripts/create-admin.mjs owner "a-strong-password" superadmin
+  ```
+Either way, this creates a row directly in your production `admin_users`
+table. Use a strong, unique password; this account can suspend/delete
+users and manage subscriptions and revenue data.
 
 ## 7. Deploy
 Click Deploy in Vercel. First build should complete with no errors.

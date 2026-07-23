@@ -11,6 +11,7 @@ import { useToast } from "@/contexts/ToastContext";
 import ScreenLoader from "@/components/ScreenLoader";
 import { useUpgradeFlow } from "@/hooks/useUpgradeFlow";
 import { createRipple } from "@/lib/ui/ripple";
+import ResponseReveal from "@/components/ResponseReveal";
 import type { ToolValues } from "@/types/tool";
 
 export default function ToolDetailPage() {
@@ -235,22 +236,43 @@ export default function ToolDetailPage() {
             )}
 
             {result && !loadingGen && (
-              <div className="result-card visible">
+              <div className="result-card visible premium-card">
                 <div className="result-hdr">
                   <div className="result-title">✨ Result</div>
                   <div className="result-actions">
-                    <button className={`act-btn ${copied ? "copied" : ""}`} onClick={handleCopy}>
+                    <button
+                      className={`act-btn ripple-container ${copied ? "copied" : ""}`}
+                      onClick={(e) => {
+                        createRipple(e);
+                        handleCopy();
+                      }}
+                    >
                       {copied ? "Copied" : "Copy"}
                     </button>
-                    <button className={`act-btn ${saved ? "copied" : ""}`} onClick={handleSave} disabled={saved}>
+                    <button
+                      className={`act-btn ripple-container ${saved ? "copied" : ""}`}
+                      onClick={(e) => {
+                        createRipple(e);
+                        handleSave();
+                      }}
+                      disabled={saved}
+                    >
                       {saved ? "Saved" : "Save"}
                     </button>
-                    <button className="act-btn" onClick={handleGenerate}>
-                      Regenerate
+                    <button
+                      className="act-btn ripple-container"
+                      onClick={(e) => {
+                        createRipple(e);
+                        handleGenerate();
+                      }}
+                    >
+                      ↻ Regenerate
                     </button>
                   </div>
                 </div>
-                <div className="result-content">{result}</div>
+                <div className="result-content">
+                  <ResponseReveal content={result} />
+                </div>
               </div>
             )}
           </>
