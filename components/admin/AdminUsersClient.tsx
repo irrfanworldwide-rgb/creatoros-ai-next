@@ -12,7 +12,7 @@ interface AdminUserRow {
   created_at: string;
 }
 
-export default function AdminUsersPage() {
+export default function AdminUsersClient() {
   const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");

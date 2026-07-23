@@ -523,6 +523,52 @@ app rather than staying independently reachable — an edge case (missing
 critical env vars is already a broken deployment either way), not a
 functional regression for any working deployment.
 
+**Post-delivery hotfix 3 — `ENOENT ... page_client-reference-manifest.js`
+on Vercel only, local `next build` succeeding:** confirmed via web
+search this is a long-standing, documented Next.js bug
+([vercel/next.js#53569](https://github.com/vercel/next.js/issues/53569),
+and numerous Vercel Community threads spanning Next.js 13 through 15)
+tied specifically to **route groups** — any parenthesized folder like
+`(app)`, `(protected)`, `(dashboard)`. It's a known issue in Next.js's
+build-time output tracing, not a defect in this project's code
+specifically — `next.config.mjs` was inspected and is clean (no
+`experimental` flags, no `outputFileTracingRoot`, no `output:
+"standalone"`, nothing that would directly cause it).
+
+Rather than chase a workaround for an upstream framework bug, **every
+route group in the project was removed**, restructuring to achieve the
+identical layout separation without relying on the buggy feature:
+
+- `app/(app)/*` → flattened back to `app/*` (`app/home`, `app/tools`,
+  `app/chat`, etc. — exactly the pre-Phase-10 structure). What the
+  route group used to provide (wrapping every user-facing page in
+  `AppBoot`/`MaintenanceGate`/the mobile-width `.app-shell`, while
+  excluding `/admin`) is now done by `components/ConditionalAppShell.tsx`
+  — a client component that checks `usePathname()` and skips that
+  wrapping entirely when the path starts with `/admin`. Mounted once in
+  the true root `app/layout.tsx`, inside `SessionProvider`/`ToastProvider`.
+- `app/admin/(protected)/*` → flattened to `app/admin/*` directly. The
+  auth-check-plus-sidebar that the route group's layout used to provide
+  is now `components/admin/AdminPageShell.tsx`, an async Server
+  Component each protected page wraps its content in explicitly. Since
+  four of those pages (Users, Subscriptions, Security, Settings) are
+  Client Components (`"use client"`, for their `useState`/`useEffect`
+  data fetching) and a Client Component cannot directly import/render a
+  Server Component, each was split into a thin Server Component
+  `page.tsx` (does the `AdminPageShell` wrap) plus a
+  `components/admin/Admin*Client.tsx` holding the actual interactive
+  logic, unchanged — the standard Next.js pattern for this exact
+  situation. `app/admin/page.tsx` (the dashboard) already was a Server
+  Component, so it just wraps its own content in `<AdminPageShell>`
+  directly, no split needed.
+- Middleware's route protection (`middleware.ts`, matcher
+  `/admin/:path*` and `/api/admin/:path*`) is completely unaffected —
+  it matches on URL path, not on internal file/folder structure, so
+  none of this restructuring touched how routes are actually secured.
+
+**Verified with zero route groups anywhere in the project:** 34 routes,
+zero path collisions, checked directly against the actual zip contents
+(not just the source tree) both times.
 **Scope note:** your Phase 10 request combined what we'd earlier agreed
 would be two phases (foundation, then the full dashboard). I built the
 security-critical foundation plus the highest-value, most tractable

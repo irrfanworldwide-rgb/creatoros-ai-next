@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export default function AdminSettingsPage() {
+export default function AdminSettingsClient() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

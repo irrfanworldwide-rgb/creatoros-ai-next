@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import LandingToolsGrid from "@/components/LandingToolsGrid";
 import ScreenLoader from "@/components/ScreenLoader";
 import { useSession } from "@/contexts/SessionContext";
+import { useToast } from "@/contexts/ToastContext";
 import { consumePendingUpgrade } from "@/lib/upgrade/intent";
 
 const AuthModal = dynamic(() => import("@/components/AuthModal"), { ssr: false });
@@ -15,6 +16,7 @@ export default function LandingPage() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "signup">("login");
   const { user, loading } = useSession();
+  const { showToast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -22,6 +24,18 @@ export default function LandingPage() {
       router.replace(consumePendingUpgrade() ? "/profile?upgrade=1" : "/home");
     }
   }, [loading, user, router]);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("creatoros_suspended") === "1") {
+        sessionStorage.removeItem("creatoros_suspended");
+        showToast("Your account has been suspended. Contact support for help.");
+      }
+    } catch {
+      // non-critical
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function openAuth(tab: "login" | "signup") {
     setAuthTab(tab);

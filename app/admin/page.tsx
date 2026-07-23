@@ -1,5 +1,6 @@
 import { getDashboardStats, getUserGrowthSeries, getRevenueGrowthSeries } from "@/lib/admin/stats";
 import AdminChart from "@/components/admin/AdminChart";
+import AdminPageShell from "@/components/admin/AdminPageShell";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <>
+    <AdminPageShell>
       <div className="admin-topbar">
         <div>
           <h1>Dashboard</h1>
@@ -45,6 +46,6 @@ export default async function AdminDashboardPage() {
 
       <AdminChart title="User Growth (14 days)" data={userGrowth} color="#A855F7" />
       <AdminChart title="Revenue Growth (14 days)" data={revenueGrowth} color="#3fb950" prefix="₹" />
-    </>
+    </AdminPageShell>
   );
 }

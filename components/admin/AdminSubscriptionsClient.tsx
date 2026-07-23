@@ -12,7 +12,7 @@ interface AdminSubRow {
   last_payment_at: string | null;
 }
 
-export default function AdminSubscriptionsPage() {
+export default function AdminSubscriptionsClient() {
   const [subs, setSubs] = useState<AdminSubRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");

@@ -19,7 +19,7 @@ interface AdminLog {
   created_at: string;
 }
 
-export default function AdminSecurityPage() {
+export default function AdminSecurityClient() {
   const [attempts, setAttempts] = useState<LoginAttempt[]>([]);
   const [logs, setLogs] = useState<AdminLog[]>([]);
   const [loading, setLoading] = useState(true);
