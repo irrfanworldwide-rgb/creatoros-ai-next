@@ -72,8 +72,11 @@ export default function AdminSecurityClient() {
               ))}
               {!loading && attempts.length === 0 && (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center", color: "var(--text3)", padding: "1.5rem" }}>
-                    No login attempts recorded yet.
+                  <td colSpan={4} style={{ padding: 0 }}>
+                    <div className="admin-empty-state">
+                      <div className="admin-empty-state-icon">🔒</div>
+                      <div className="admin-empty-state-text">No login attempts recorded yet.</div>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -107,8 +110,11 @@ export default function AdminSecurityClient() {
               ))}
               {!loading && logs.length === 0 && (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center", color: "var(--text3)", padding: "1.5rem" }}>
-                    No admin actions logged yet.
+                  <td colSpan={4} style={{ padding: 0 }}>
+                    <div className="admin-empty-state">
+                      <div className="admin-empty-state-icon">📋</div>
+                      <div className="admin-empty-state-text">No admin actions logged yet.</div>
+                    </div>
                   </td>
                 </tr>
               )}

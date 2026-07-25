@@ -1,4 +1,12 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Contact Us",
+  description: "Get in touch with the CreatorOS AI team.",
+  alternates: { canonical: "/contact" },
+  robots: { index: true, follow: true },
+};
 
 export default function ContactPage() {
   return (

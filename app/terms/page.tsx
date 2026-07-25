@@ -1,4 +1,12 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Use",
+  description: "Terms and conditions for using CreatorOS AI.",
+  alternates: { canonical: "/terms" },
+  robots: { index: true, follow: true },
+};
 
 export default function TermsPage() {
   return (

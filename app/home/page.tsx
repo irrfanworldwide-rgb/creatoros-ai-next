@@ -7,8 +7,8 @@ import { useSession } from "@/contexts/SessionContext";
 import BottomNav from "@/components/BottomNav";
 import ScreenLoader from "@/components/ScreenLoader";
 import { TOOLS, TIPS } from "@/data/tools";
-import { FREE_DAILY_LIMIT } from "@/lib/supabase/data";
 import { useUpgradeFlow } from "@/hooks/useUpgradeFlow";
+import { useFreeDailyLimit } from "@/hooks/useFreeDailyLimit";
 import { createRipple } from "@/lib/ui/ripple";
 
 export default function HomePage() {
@@ -16,6 +16,7 @@ export default function HomePage() {
   const { profile, usageToday } = useSession();
   const router = useRouter();
   const { goToUpgrade } = useUpgradeFlow();
+  const freeDailyLimit = useFreeDailyLimit();
 
   const tip = useMemo(() => TIPS[Math.floor(Math.random() * TIPS.length)], []);
   const recentTools = TOOLS.slice(0, 6);
@@ -63,7 +64,7 @@ export default function HomePage() {
             <span className="sc-icon">⚡</span> Today
           </div>
           <div className="sc-value">
-            {plan === "pro" ? usageToday : `${usageToday}/${FREE_DAILY_LIMIT}`}
+            {plan === "pro" ? usageToday : `${usageToday}/${freeDailyLimit}`}
           </div>
           <div className="sc-sub">generations used</div>
         </div>
@@ -72,7 +73,7 @@ export default function HomePage() {
             <span className="sc-icon">💎</span> Plan
           </div>
           <div className="sc-value">{plan === "pro" ? "Pro" : "Free"}</div>
-          <div className="sc-sub">{plan === "pro" ? "Unlimited access" : "3 free / day"}</div>
+          <div className="sc-sub">{plan === "pro" ? "Unlimited access" : `${freeDailyLimit} free / day`}</div>
         </div>
       </div>
 

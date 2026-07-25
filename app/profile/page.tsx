@@ -218,6 +218,27 @@ export default function ProfilePage() {
             </div>
             <span className="prof-chevron">›</span>
           </div>
+          <div className="prof-row" onClick={() => router.push("/refund-policy")}>
+            <div className="prof-row-left">
+              <span className="prof-row-icon">💳</span>
+              <span className="prof-row-label">Refund Policy</span>
+            </div>
+            <span className="prof-chevron">›</span>
+          </div>
+          <div className="prof-row" onClick={() => router.push("/cookie-policy")}>
+            <div className="prof-row-left">
+              <span className="prof-row-icon">🍪</span>
+              <span className="prof-row-label">Cookie Policy</span>
+            </div>
+            <span className="prof-chevron">›</span>
+          </div>
+          <div className="prof-row" onClick={() => router.push("/about")}>
+            <div className="prof-row-left">
+              <span className="prof-row-icon">ℹ️</span>
+              <span className="prof-row-label">About Us</span>
+            </div>
+            <span className="prof-chevron">›</span>
+          </div>
         </div>
 
         <div className="logout-row" onClick={handleLogout}>

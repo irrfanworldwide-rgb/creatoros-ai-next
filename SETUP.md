@@ -222,6 +222,10 @@ node scripts/create-admin.mjs owner "a-strong-password-here" superadmin
 
 **4. Log in** at `/admin/login` with those credentials.
 
+**Rate Limits (Phase 20):** the free-tier daily generation limit is
+editable from `/admin/settings` — no env var, no redeploy. It defaults
+to 3/day until you change it there.
+
 **What's in Phase 10 vs. deferred to Phase 11:** the foundation
 (auth, RBAC, middleware protection, audit logging), live Dashboard,
 User Management, Subscription Management, a Security page (login

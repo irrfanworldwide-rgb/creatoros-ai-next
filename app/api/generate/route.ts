@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAIProvider, AIProviderError } from "@/lib/ai";
 import { getBearerToken, getUserFromToken, getUserScopedClient } from "@/lib/supabase/serverAuth";
-import { canGenerate, getTodayUsage, incUsage } from "@/lib/supabase/data";
+import { canGenerate, getTodayUsage, incUsage, getFreeDailyLimit } from "@/lib/supabase/data";
 
 // Never cache these endpoints — every request is user-specific and
 // security-sensitive (AI generation usage, payment verification).
@@ -43,8 +43,9 @@ export async function POST(req: NextRequest) {
   const { data: profile } = await sb.from("profiles").select("plan").eq("id", user.id).maybeSingle();
   const plan = (profile?.plan as "free" | "pro") || "free";
   const usageToday = await getTodayUsage(sb, user.id);
+  const dailyLimit = await getFreeDailyLimit(sb);
 
-  if (!canGenerate(plan, usageToday)) {
+  if (!canGenerate(plan, usageToday, dailyLimit)) {
     return NextResponse.json(
       { error: "Daily free-tier limit reached. Upgrade to Pro for unlimited generations." },
       { status: 403 }

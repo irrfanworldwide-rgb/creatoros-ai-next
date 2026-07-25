@@ -9,6 +9,7 @@ import ScreenLoader from "@/components/ScreenLoader";
 import { useSession } from "@/contexts/SessionContext";
 import { useToast } from "@/contexts/ToastContext";
 import { consumePendingUpgrade } from "@/lib/upgrade/intent";
+import { useFreeDailyLimit } from "@/hooks/useFreeDailyLimit";
 
 const AuthModal = dynamic(() => import("@/components/AuthModal"), { ssr: false });
 
@@ -16,6 +17,7 @@ export default function LandingPage() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "signup">("login");
   const { user, loading } = useSession();
+  const freeDailyLimit = useFreeDailyLimit();
   const { showToast } = useToast();
   const router = useRouter();
 
@@ -50,13 +52,36 @@ export default function LandingPage() {
 
   return (
     <div className="screen active" id="screen-landing">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "CreatorOS AI",
+            applicationCategory: "BusinessApplication",
+            operatingSystem: "Web",
+            description:
+              "AI content creation platform for creators — 21 AI tools for scripts, hooks, captions, hashtags, CTAs, and an AI chat assistant.",
+            offers: [
+              { "@type": "Offer", name: "Free", price: "0", priceCurrency: "INR" },
+              { "@type": "Offer", name: "Pro", price: "299", priceCurrency: "INR" },
+            ],
+          }),
+        }}
+      />
       <AuthModal isOpen={authOpen} initialTab={authTab} onClose={() => setAuthOpen(false)} />
 
       <nav className="landing-nav">
         <div className="landing-logo">CreatorOS AI</div>
-        <button className="landing-signin-btn" onClick={() => openAuth("login")}>
-          Sign In
-        </button>
+        <div className="landing-nav-actions">
+          <button className="landing-signup-btn" onClick={() => openAuth("signup")}>
+            Sign Up
+          </button>
+          <button className="landing-signin-btn" onClick={() => openAuth("login")}>
+            Sign In
+          </button>
+        </div>
       </nav>
 
       <div className="hero-section">
@@ -85,7 +110,7 @@ export default function LandingPage() {
           <div className="ls-label">AI Tools</div>
         </div>
         <div className="ls-item">
-          <div className="ls-num">3</div>
+          <div className="ls-num">{freeDailyLimit}</div>
           <div className="ls-label">Free/Day</div>
         </div>
         <div className="ls-item">
@@ -115,11 +140,20 @@ export default function LandingPage() {
       <footer className="landing-footer">
         <span className="landing-footer-logo">CreatorOS AI</span>
         <div className="landing-footer-links">
+          <Link className="lfl" href="/about">
+            About
+          </Link>
           <Link className="lfl" href="/privacy">
             Privacy Policy
           </Link>
           <Link className="lfl" href="/terms">
             Terms
+          </Link>
+          <Link className="lfl" href="/refund-policy">
+            Refund Policy
+          </Link>
+          <Link className="lfl" href="/cookie-policy">
+            Cookie Policy
           </Link>
           <Link className="lfl" href="/contact">
             Contact

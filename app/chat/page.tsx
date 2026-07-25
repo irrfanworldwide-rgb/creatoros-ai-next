@@ -9,8 +9,11 @@ import BottomNav from "@/components/BottomNav";
 import ScreenLoader from "@/components/ScreenLoader";
 import { useToast } from "@/contexts/ToastContext";
 import { useUpgradeFlow } from "@/hooks/useUpgradeFlow";
+import { useFreeDailyLimit } from "@/hooks/useFreeDailyLimit";
 import { createRipple } from "@/lib/ui/ripple";
-import ResponseReveal from "@/components/ResponseReveal";
+import dynamic from "next/dynamic";
+
+const ResponseReveal = dynamic(() => import("@/components/ResponseReveal"), { ssr: false });
 
 interface ChatMessage {
   role: "user" | "ai";
@@ -26,11 +29,12 @@ export default function ChatPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { showToast } = useToast();
   const { goToUpgrade, redirecting } = useUpgradeFlow();
+  const freeDailyLimit = useFreeDailyLimit();
 
   if (loading || !user) return <ScreenLoader />;
 
   const plan = profile?.plan ?? "free";
-  const allowed = canGenerate(plan, usageToday);
+  const allowed = canGenerate(plan, usageToday, freeDailyLimit);
 
   async function callGenerate(prompt: string): Promise<{ ok: boolean; text: string }> {
     try {
@@ -91,8 +95,10 @@ export default function ChatPage() {
   }
 
   function handleCopyMessage(text: string) {
-    navigator.clipboard.writeText(text);
-    showToast("Copied to clipboard");
+    navigator.clipboard
+      .writeText(text)
+      .then(() => showToast("Copied to clipboard"))
+      .catch(() => showToast("Could not copy. Please select and copy the text manually."));
   }
 
   function handleNewChat() {

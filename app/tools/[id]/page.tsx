@@ -6,13 +6,16 @@ import Link from "next/link";
 import { TOOLS } from "@/data/tools";
 import { useSession } from "@/contexts/SessionContext";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { canGenerate, saveGeneration, FREE_DAILY_LIMIT } from "@/lib/supabase/data";
+import { canGenerate, saveGeneration } from "@/lib/supabase/data";
 import { useToast } from "@/contexts/ToastContext";
 import ScreenLoader from "@/components/ScreenLoader";
 import { useUpgradeFlow } from "@/hooks/useUpgradeFlow";
+import { useFreeDailyLimit } from "@/hooks/useFreeDailyLimit";
 import { createRipple } from "@/lib/ui/ripple";
-import ResponseReveal from "@/components/ResponseReveal";
+import dynamic from "next/dynamic";
 import type { ToolValues } from "@/types/tool";
+
+const ResponseReveal = dynamic(() => import("@/components/ResponseReveal"), { ssr: false });
 
 export default function ToolDetailPage() {
   const params = useParams<{ id: string }>();
@@ -25,9 +28,11 @@ export default function ToolDetailPage() {
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const { showToast } = useToast();
   const { goToUpgrade, redirecting } = useUpgradeFlow();
+  const freeDailyLimit = useFreeDailyLimit();
 
   if (!tool) {
     return (
@@ -45,7 +50,7 @@ export default function ToolDetailPage() {
   if (sessionLoading) return <ScreenLoader />;
 
   const plan = profile?.plan ?? "free";
-  const allowed = user ? canGenerate(plan, usageToday) : false;
+  const allowed = user ? canGenerate(plan, usageToday, freeDailyLimit) : false;
 
   function setValue(id: string, v: string) {
     setValues((prev) => ({ ...prev, [id]: v }));
@@ -53,7 +58,7 @@ export default function ToolDetailPage() {
 
   async function handleGenerate() {
     if (!tool || !user) return;
-    if (!canGenerate(plan, usageToday)) return;
+    if (!canGenerate(plan, usageToday, freeDailyLimit)) return;
 
     setLoadingGen(true);
     setError(null);
@@ -97,22 +102,33 @@ export default function ToolDetailPage() {
   }
 
   async function handleSave() {
-    if (!user || !result || !tool) return;
-    const sb = getSupabaseBrowserClient();
-    await saveGeneration(sb, user.id, tool.id, tool.name, result);
-    setSaved(true);
-    showToast("Saved to Library");
+    if (!user || !result || !tool || saving || saved) return;
+    setSaving(true);
+    try {
+      const sb = getSupabaseBrowserClient();
+      await saveGeneration(sb, user.id, tool.id, tool.name, result);
+      setSaved(true);
+      showToast("Saved to Library");
+    } catch {
+      showToast("Could not save. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleCopy() {
     if (!result) return;
-    navigator.clipboard.writeText(result);
-    setCopied(true);
-    showToast("Copied to clipboard");
-    setTimeout(() => setCopied(false), 1500);
+    navigator.clipboard
+      .writeText(result)
+      .then(() => {
+        setCopied(true);
+        showToast("Copied to clipboard");
+        setTimeout(() => setCopied(false), 1500);
+      })
+      .catch(() => showToast("Could not copy. Please select and copy the text manually."));
   }
 
-  const usageDots = Array.from({ length: FREE_DAILY_LIMIT }, (_, i) => i < usageToday);
+  const usageDots = Array.from({ length: freeDailyLimit }, (_, i) => i < usageToday);
 
   return (
     <div className="tool-detail-screen screen active">
@@ -150,7 +166,7 @@ export default function ToolDetailPage() {
             {plan === "free" && (
               <div className="usage-pill">
                 <div className="up-left">
-                  <strong>{usageToday}</strong>/{FREE_DAILY_LIMIT} used today
+                  <strong>{usageToday}</strong>/{freeDailyLimit} used today
                 </div>
                 <div className="up-right">
                   <div className="usage-dots">
@@ -255,12 +271,13 @@ export default function ToolDetailPage() {
                         createRipple(e);
                         handleSave();
                       }}
-                      disabled={saved}
+                      disabled={saved || saving}
                     >
-                      {saved ? "Saved" : "Save"}
+                      {saving ? "Saving..." : saved ? "Saved" : "Save"}
                     </button>
                     <button
                       className="act-btn ripple-container"
+                      disabled={loadingGen}
                       onClick={(e) => {
                         createRipple(e);
                         handleGenerate();

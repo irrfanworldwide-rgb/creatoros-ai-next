@@ -1,4 +1,12 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "How CreatorOS AI collects, uses, and protects your data.",
+  alternates: { canonical: "/privacy" },
+  robots: { index: true, follow: true },
+};
 
 export default function PrivacyPage() {
   return (

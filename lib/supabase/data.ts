@@ -92,9 +92,26 @@ export async function incUsage(sb: SupabaseClient, userId: string): Promise<numb
   return next;
 }
 
-/** Same gating rule as the original app: Pro = unlimited, Free = 3/day. */
-export function canGenerate(plan: "free" | "pro", usageToday: number): boolean {
-  return plan === "pro" || usageToday < FREE_DAILY_LIMIT;
+/**
+ * Same gating rule as the original app: Pro = unlimited, Free = N/day.
+ * `limit` defaults to the constant so every existing call site is
+ * unaffected; pass the admin-configured value (see getFreeDailyLimit)
+ * where you want the live, admin-editable limit enforced instead.
+ */
+export function canGenerate(plan: "free" | "pro", usageToday: number, limit: number = FREE_DAILY_LIMIT): boolean {
+  return plan === "pro" || usageToday < limit;
+}
+
+/**
+ * Reads the admin-configurable free-tier daily limit from the `settings`
+ * table (key: "free_daily_limit"), falling back to FREE_DAILY_LIMIT if
+ * it's never been set. Uses the same generic settings table Phase 10
+ * already built for Maintenance Mode — no schema change, just a new key.
+ */
+export async function getFreeDailyLimit(sb: SupabaseClient): Promise<number> {
+  const { data } = await sb.from("settings").select("value").eq("key", "free_daily_limit").maybeSingle();
+  const value = data?.value;
+  return typeof value === "number" && value > 0 ? value : FREE_DAILY_LIMIT;
 }
 
 export async function saveGeneration(

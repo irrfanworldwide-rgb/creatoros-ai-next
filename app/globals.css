@@ -26,8 +26,11 @@ button,a,div[onclick]{touch-action:manipulation}
 /* ===== LANDING (not logged in) ===== */
 #landing{padding-bottom:0}
 .landing-nav{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;background:rgba(13,17,23,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
-.landing-logo{font-family:var(--font-space-grotesk),sans-serif;font-size:1.1rem;font-weight:700;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.landing-logo{font-family:var(--font-space-grotesk),sans-serif;font-size:1.25rem;font-weight:700;letter-spacing:-.02em;background:linear-gradient(135deg,#7C3AED,#9333EA);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .landing-signin-btn{font-size:13px;font-weight:600;color:#fff;background:var(--gradient);border:none;border-radius:10px;padding:7px 16px;cursor:pointer;font-family:var(--font-inter),sans-serif}
+.landing-nav-actions{display:flex;align-items:center;gap:8px}
+.landing-signup-btn{font-size:13px;font-weight:600;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:10px;padding:7px 16px;cursor:pointer;font-family:var(--font-inter),sans-serif;transition:border-color .2s ease,color .2s ease}
+.landing-signup-btn:hover{border-color:var(--primary);color:var(--primary2)}
 .hero-section{text-align:center;padding:3.5rem 1.25rem 2.5rem;position:relative;overflow:hidden}
 .hero-section::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:500px;height:400px;background:radial-gradient(ellipse,rgba(124,58,237,.14) 0%,transparent 70%);pointer-events:none}
 .hero-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--primary2);background:var(--glow);border:1px solid rgba(168,85,247,.3);padding:5px 12px;border-radius:20px;margin-bottom:1.25rem}
@@ -404,14 +407,24 @@ select.inp-field{appearance:none;background-repeat:no-repeat;background-position
 /* ---- Desktop (≥1024px): center the mobile-app layout in a fixed-width
    column rather than stretching everything full-bleed, which is what a
    phone-first design needs to stay readable and premium-feeling on a
-   wide monitor. The layout ITSELF is unchanged — this only constrains
-   its width and centers it. ---- */
+   wide monitor. Same visual treatment as before (centered box, same
+   shadow) — Phase 20 widened it from 480px (too narrow, looked like a
+   phone centered on a monitor) to a properly usable desktop width,
+   with grids using the extra space. No new components, no redesign. ---- */
 @media (min-width:1024px){
   body{display:flex;justify-content:center;background:var(--surface2)}
-  .app-shell{width:100%;max-width:480px;background:var(--bg);min-height:100vh;box-shadow:0 0 60px rgba(0,0,0,.4)}
-  .bottom-nav{max-width:480px;left:50%;transform:translateX(-50%)}
+  .app-shell{width:100%;max-width:760px;background:var(--bg);min-height:100vh;box-shadow:0 0 60px rgba(0,0,0,.4);padding-left:1.25rem;padding-right:1.25rem}
+  .bottom-nav{max-width:760px;left:50%;transform:translateX(-50%)}
   .modal-overlay{backdrop-filter:blur(12px)}
-  .tools-grid,.tools-grid-2{grid-template-columns:repeat(3,1fr)}
+  .tools-grid,.tools-grid-2{grid-template-columns:repeat(4,1fr)}
+  .quick-actions{grid-template-columns:repeat(3,1fr);max-width:520px}
+  .stats-grid{max-width:none;grid-template-columns:repeat(4,1fr)}
+  .hscroll-wrap{overflow-x:visible}
+  .hscroll{flex-wrap:wrap}
+  .recent-tool-card{min-width:0;flex:1 1 calc(25% - 8px)}
+  .sub-plans{max-width:560px}
+  .chat-messages{padding-left:1.75rem;padding-right:1.75rem}
+  .td-body,.content-screen{padding-left:1.5rem;padding-right:1.5rem}
 }
 
 /* ---- Premium micro-interactions ---- */
@@ -453,6 +466,10 @@ select.inp-field{appearance:none;background-repeat:no-repeat;background-position
 .admin-table{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap}
 .admin-table th{text-align:left;padding:.6rem .75rem;color:var(--text3);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
 .admin-table td{padding:.65rem .75rem;border-bottom:1px solid var(--border);color:var(--text)}
+.admin-empty-state{text-align:center;padding:2.5rem 1rem;color:var(--text3)}
+.admin-empty-state-icon{font-size:2rem;margin-bottom:.6rem;opacity:.5}
+.admin-empty-state-text{font-size:13px;color:var(--text2)}
+.admin-loading-row{color:var(--text3);font-size:12.5px}
 .admin-table tr:last-child td{border-bottom:none}
 .admin-table tr:hover td{background:rgba(124,58,237,.04)}
 
@@ -555,3 +572,5 @@ select.inp-field{appearance:none;background-repeat:no-repeat;background-position
 .msg-actions{display:flex;gap:6px;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border)}
 .msg-action-btn{font-size:11px;font-weight:500;padding:4px 9px;border-radius:7px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text3);transition:all .15s ease;font-family:'Inter',sans-serif}
 .msg-action-btn:hover{border-color:var(--primary);color:var(--primary2)}
+
+
