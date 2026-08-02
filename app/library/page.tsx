@@ -23,7 +23,11 @@ export default function LibraryPage() {
     const sb = getSupabaseBrowserClient();
     getGenerations(sb, user.id)
       .then(setItems)
-      .catch(() => showToast("Could not load your Library. Please try again."))
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load Library:", err);
+        showToast("Could not load your Library. Please try again.");
+      })
       .finally(() => setFetching(false));
   }, [user, showToast]);
 
@@ -41,8 +45,12 @@ export default function LibraryPage() {
       await deleteGeneration(sb, id);
       setItems((prev) => prev.filter((i) => i.id !== id));
       showToast("Deleted");
-    } catch {
-      showToast("Could not delete. Please try again.");
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("Delete from Library failed:", err);
+      const message =
+        err instanceof Error && err.message ? `Could not delete: ${err.message}` : "Could not delete. Please try again.";
+      showToast(message);
     } finally {
       setDeletingId(null);
     }

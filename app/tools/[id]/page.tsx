@@ -92,7 +92,9 @@ export default function ToolDetailPage() {
 
       setResult(data.content);
       await refreshUsage();
-    } catch {
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("Generation request failed:", err);
       const errText = "Something went wrong. Please try again.";
       setError(errText);
       showToast(errText);
@@ -109,8 +111,16 @@ export default function ToolDetailPage() {
       await saveGeneration(sb, user.id, tool.id, tool.name, result);
       setSaved(true);
       showToast("Saved to Library");
-    } catch {
-      showToast("Could not save. Please try again.");
+    } catch (err) {
+      // Log the full Supabase error (code/message/details/hint) — this
+      // was previously discarded entirely by an empty catch, which is
+      // why this failure had zero visibility. Check the browser console
+      // for the real cause (commonly an RLS policy or schema mismatch).
+      // eslint-disable-next-line no-console
+      console.error("Save to Library failed:", err);
+      const message =
+        err instanceof Error && err.message ? `Could not save: ${err.message}` : "Could not save. Please try again.";
+      showToast(message);
     } finally {
       setSaving(false);
     }
