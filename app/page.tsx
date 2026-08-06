@@ -10,8 +10,16 @@ import { useSession } from "@/contexts/SessionContext";
 import { useToast } from "@/contexts/ToastContext";
 import { consumePendingUpgrade } from "@/lib/upgrade/intent";
 import { useFreeDailyLimit } from "@/hooks/useFreeDailyLimit";
+import { TOOLS } from "@/data/tools";
 
 const AuthModal = dynamic(() => import("@/components/AuthModal"), { ssr: false });
+
+// Real, existing tool entries — used to give the new hero showcase panel
+// authentic content instead of fabricated stats/numbers.
+const showcaseTool = TOOLS.find((t) => t.id === "hook") || TOOLS[0];
+const showcaseToolSecondary = TOOLS.find((t) => t.id === "script") || TOOLS[1];
+
+const TRUSTED_PLATFORMS = ["YouTube", "Instagram", "TikTok", "Reels", "Shorts"];
 
 export default function LandingPage() {
   const [authOpen, setAuthOpen] = useState(false);
@@ -58,7 +66,7 @@ export default function LandingPage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            name: "CreatorOS AI",
+            name: "CreatorOS Studio AI",
             applicationCategory: "BusinessApplication",
             operatingSystem: "Web",
             description:
@@ -73,7 +81,7 @@ export default function LandingPage() {
       <AuthModal isOpen={authOpen} initialTab={authTab} onClose={() => setAuthOpen(false)} />
 
       <nav className="landing-nav">
-        <div className="landing-logo">CreatorOS AI</div>
+        <div className="landing-logo">CreatorOS Studio AI</div>
         <div className="landing-nav-actions">
           <button className="landing-signup-btn" onClick={() => openAuth("signup")}>
             Sign Up
@@ -85,22 +93,58 @@ export default function LandingPage() {
       </nav>
 
       <div className="hero-section">
-        <div className="hero-tag">✦ AI-Powered for Creators</div>
-        <h1 className="hero-h1">
-          Create <span>Viral Content</span>
-          <br />
-          with AI
-        </h1>
-        <p className="hero-p">
-          Generate hooks, scripts, captions, hashtags and more in seconds. Free to join — no credit card needed.
-        </p>
-        <div className="hero-btns">
-          <button className="btn-grad" onClick={() => openAuth("signup")}>
-            Get Started Free →
-          </button>
-          <button className="btn-outline" onClick={scrollToTools}>
-            Explore Tools
-          </button>
+        <div className="hero-orb hero-orb-1" aria-hidden="true" />
+        <div className="hero-orb hero-orb-2" aria-hidden="true" />
+        <div className="hero-orb hero-orb-3" aria-hidden="true" />
+
+        <div className="hero-grid">
+          <div className="hero-left">
+            <div className="hero-tag">✦ AI-Powered for Creators</div>
+            <h1 className="hero-h1">
+              Create <span>Viral Content</span>
+              <br />
+              with AI
+            </h1>
+            <p className="hero-p">
+              Generate hooks, scripts, captions, hashtags and more in seconds. Free to join — no credit card needed.
+            </p>
+            <div className="hero-btns">
+              <button className="btn-grad" onClick={() => openAuth("signup")}>
+                Get Started Free →
+              </button>
+              <button className="btn-outline" onClick={scrollToTools}>
+                Explore Tools
+              </button>
+            </div>
+          </div>
+
+          <div className="hero-right" aria-hidden="true">
+            <div className="hero-showcase">
+              <div className="hs-card hs-card-main">
+                <div className="hs-card-dot" />
+                <div className="hs-card-header">
+                  <span className="hs-card-icon">{showcaseTool.icon}</span>
+                  <span className="hs-card-title">{showcaseTool.name}</span>
+                </div>
+                <div className="hs-line hs-line-1" />
+                <div className="hs-line hs-line-2" />
+                <div className="hs-line hs-line-3" />
+                <div className="hs-card-footer">
+                  <span className="hs-badge">✨ Generating</span>
+                </div>
+              </div>
+
+              <div className="hs-card hs-card-float hs-card-float-1">
+                <span className="hs-card-icon">{showcaseToolSecondary.icon}</span>
+                <span className="hs-float-label">{showcaseToolSecondary.name}</span>
+              </div>
+
+              <div className="hs-card hs-card-float hs-card-float-2">
+                <span className="hs-check">✓</span>
+                <span className="hs-float-label">Saved to Library</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -123,6 +167,17 @@ export default function LandingPage() {
         </div>
       </div>
 
+      <div className="landing-trusted">
+        <div className="lt-label">Built for creators on</div>
+        <div className="lt-platforms">
+          {TRUSTED_PLATFORMS.map((p) => (
+            <span className="lt-platform" key={p}>
+              {p}
+            </span>
+          ))}
+        </div>
+      </div>
+
       <div className="landing-tools-section" id="landingToolsSection">
         <h2>All AI Tools</h2>
         <p>Everything a content creator needs — in one place.</p>
@@ -138,7 +193,7 @@ export default function LandingPage() {
       </div>
 
       <footer className="landing-footer">
-        <span className="landing-footer-logo">CreatorOS AI</span>
+        <span className="landing-footer-logo">CreatorOS Studio AI</span>
         <div className="landing-footer-links">
           <Link className="lfl" href="/about">
             About
@@ -160,8 +215,8 @@ export default function LandingPage() {
           </Link>
         </div>
         <div className="landing-footer-copy">
-          <span>© 2026 CreatorOS AI. All Rights Reserved.</span>
-          <span>Made for Content Creators 🇮🇳 · Powered by CreatorOS AI · v1.0</span>
+          <span>© 2026 CreatorOS Studio AI. All Rights Reserved.</span>
+          <span>Made for Content Creators 🇮🇳 · Powered by CreatorOS Studio AI · v1.0</span>
         </div>
       </footer>
     </div>
