@@ -79,6 +79,16 @@ create table if not exists public.generations (
   created_at timestamptz not null default now()
 );
 
+-- FIX (confirmed via PGRST204 "Could not find the 'content' column of
+-- 'generations' in the schema cache"): the CREATE TABLE IF NOT EXISTS
+-- above does nothing on a project where this table already existed
+-- before this file did — it does not add missing columns to a table
+-- that's already there. This ALTER TABLE is what actually takes effect
+-- in that case. Safe to run even if the column already exists
+-- (IF NOT EXISTS) or if the table already has rows (DEFAULT '' avoids
+-- a NOT NULL violation on existing rows).
+alter table public.generations add column if not exists content text not null default '';
+
 create index if not exists generations_user_created_idx
   on public.generations (user_id, created_at desc);
 

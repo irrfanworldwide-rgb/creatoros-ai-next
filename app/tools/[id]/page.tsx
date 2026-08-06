@@ -117,9 +117,17 @@ export default function ToolDetailPage() {
       // why this failure had zero visibility. Check the browser console
       // for the real cause (commonly an RLS policy or schema mismatch).
       // eslint-disable-next-line no-console
-      console.error("Save to Library failed:", err);
-      const message =
-        err instanceof Error && err.message ? `Could not save: ${err.message}` : "Could not save. Please try again.";
+      console.error("Save to Library failed — full error object:", err);
+      // Supabase's PostgrestError is often a plain object with a
+      // .message string, not a true `Error` instance, so check for the
+      // property directly rather than only `err instanceof Error`.
+      const rawMessage =
+        typeof err === "object" && err !== null && "message" in err && typeof (err as { message: unknown }).message === "string"
+          ? (err as { message: string }).message
+          : typeof err === "string"
+            ? err
+            : null;
+      const message = rawMessage ? `Could not save: ${rawMessage}` : "Could not save. Please try again.";
       showToast(message);
     } finally {
       setSaving(false);
