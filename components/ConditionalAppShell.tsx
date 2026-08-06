@@ -4,6 +4,11 @@ import { usePathname } from "next/navigation";
 import AppBoot from "@/components/AppBoot";
 import MaintenanceGate from "@/components/MaintenanceGate";
 
+// The authenticated-app section of the site — same route set BottomNav
+// already treats as "the app." Only these get the splash/loading
+// animation; public pages (landing, legal, contact) render immediately.
+const AUTHENTICATED_APP_PREFIXES = ["/home", "/tools", "/chat", "/library", "/profile"];
+
 export default function ConditionalAppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
@@ -16,11 +21,18 @@ export default function ConditionalAppShell({ children }: { children: React.Reac
     return <>{children}</>;
   }
 
-  return (
-    <AppBoot>
-      <MaintenanceGate>
-        <div className="app-shell">{children}</div>
-      </MaintenanceGate>
-    </AppBoot>
+  const isAuthenticatedApp = AUTHENTICATED_APP_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname?.startsWith(prefix + "/")
   );
+
+  const content = (
+    <MaintenanceGate>
+      <div className="app-shell">{children}</div>
+    </MaintenanceGate>
+  );
+
+  // Public pages (landing, privacy, terms, contact, etc.) render
+  // immediately — no splash screen. The authenticated app still gets
+  // it, exactly as before, on first entry each session.
+  return isAuthenticatedApp ? <AppBoot>{content}</AppBoot> : content;
 }
