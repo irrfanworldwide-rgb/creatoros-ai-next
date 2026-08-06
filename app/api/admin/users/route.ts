@@ -27,5 +27,5 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Could not load users." }, { status: 500 });
   }
 
-  return NextResponse.json({ users: data });
+  return NextResponse.json({ users: data }, { headers: { "Cache-Control": "no-store" } });
 }

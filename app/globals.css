@@ -413,8 +413,7 @@ select.inp-field{appearance:none;background-repeat:no-repeat;background-position
    with grids using the extra space. No new components, no redesign. ---- */
 @media (min-width:1024px){
   body{display:flex;justify-content:center;background:var(--surface2)}
-  .app-shell{width:100%;max-width:760px;background:var(--bg);min-height:100vh;box-shadow:0 0 60px rgba(0,0,0,.4);padding-left:1.25rem;padding-right:1.25rem}
-  .bottom-nav{max-width:760px;left:50%;transform:translateX(-50%)}
+  .app-shell{width:100%;background:var(--bg);min-height:100vh;box-shadow:0 0 60px rgba(0,0,0,.4);padding-left:1.25rem;padding-right:1.25rem}
   .modal-overlay{backdrop-filter:blur(12px)}
   .tools-grid,.tools-grid-2{grid-template-columns:repeat(4,1fr)}
   .quick-actions{grid-template-columns:repeat(3,1fr);max-width:520px}

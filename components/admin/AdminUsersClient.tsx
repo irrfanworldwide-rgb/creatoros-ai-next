@@ -37,7 +37,7 @@ export default function AdminUsersClient() {
     if (planFilter) params.set("plan", planFilter);
     if (statusFilter) params.set("status", statusFilter);
     try {
-      const res = await fetch(`/api/admin/users?${params.toString()}`);
+      const res = await fetch(`/api/admin/users?${params.toString()}`, { cache: "no-store" });
       const data = await res.json();
       if (res.ok) {
         setUsers(data.users);
@@ -72,19 +72,11 @@ export default function AdminUsersClient() {
         showToast(data.error || "Action failed. Please try again.");
         return;
       }
-      // Optimistic local update — instant, no wait on a refetch, and
-      // correct even if the current filter would otherwise hide the row
-      // (e.g. reactivating while "Suspended" filter is active).
-      setUsers((prev) =>
-        prev.map((u) => {
-          if (u.id !== id) return u;
-          if (action === "suspend") return { ...u, suspended: true };
-          if (action === "reactivate") return { ...u, suspended: false };
-          if (action === "upgrade") return { ...u, plan: "pro" };
-          if (action === "downgrade") return { ...u, plan: "free" };
-          return u;
-        })
-      );
+      // Refetch from the database instead of relying only on optimistic
+      // local state — guarantees the UI reflects the actual DB value,
+      // including on a later page refresh, and stays correct even if
+      // the server applied the action slightly differently than assumed.
+      await fetchUsers();
       showToast(ACTION_LABELS[action] || "Updated");
     } catch {
       showToast("Action failed. Check your connection and try again.");
