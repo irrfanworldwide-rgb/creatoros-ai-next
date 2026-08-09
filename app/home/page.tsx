@@ -48,7 +48,7 @@ export default function HomePage() {
         <div className="dash-header-right">
           {plan === "free" && (
             <button className="dash-upgrade-pill" onClick={goToUpgrade}>
-              👑 Upgrade to Pro
+              👑 <span className="dash-upgrade-label">Upgrade to Pro</span>
             </button>
           )}
           <button className="dash-icon-btn" onClick={() => router.push("/library")} aria-label="Library">
