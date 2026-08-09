@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useToast } from "@/contexts/ToastContext";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
 type AuthTab = "login" | "signup";
 
@@ -19,6 +20,7 @@ export default function AuthModal({ isOpen, initialTab, onClose }: AuthModalProp
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState<{ text: string; type: "error" | "success" } | null>(null);
   const { showToast } = useToast();
+  useBodyScrollLock(isOpen);
 
   if (!isOpen) return null;
 
@@ -100,7 +102,7 @@ export default function AuthModal({ isOpen, initialTab, onClose }: AuthModalProp
           ✕
         </div>
         <div className="auth-header">
-          <h2>Welcome to CreatorOS AI</h2>
+          <h2>Welcome to CreatorOS Studio AI</h2>
           <p>Sign in to access all tools and save your work</p>
         </div>
         <div className="auth-tabs">

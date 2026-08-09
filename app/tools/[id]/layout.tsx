@@ -12,11 +12,11 @@ export function generateMetadata({ params }: { params: { id: string } }): Metada
   }
   return {
     title: tool.name,
-    description: `${tool.desc} Free AI tool from CreatorOS AI — generate in seconds.`,
+    description: `${tool.desc} Free AI tool from CreatorOS Studio AI — generate in seconds.`,
     alternates: { canonical: `/tools/${tool.id}` },
     robots: { index: true, follow: true },
     openGraph: {
-      title: `${tool.name} — CreatorOS AI`,
+      title: `${tool.name} — CreatorOS Studio AI`,
       description: tool.desc,
     },
   };

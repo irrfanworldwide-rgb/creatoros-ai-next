@@ -5,6 +5,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { loadRazorpayScript } from "@/lib/razorpay/loadScript";
 import { useSession } from "@/contexts/SessionContext";
 import { useToast } from "@/contexts/ToastContext";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ export default function SubscriptionModal({ isOpen, onClose }: SubscriptionModal
   const { showToast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useBodyScrollLock(isOpen);
 
   if (!isOpen) return null;
 
@@ -58,7 +60,7 @@ export default function SubscriptionModal({ isOpen, onClose }: SubscriptionModal
       const razorpay = new RazorpayCtor({
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         subscription_id: subData.subscriptionId,
-        name: "CreatorOS AI",
+        name: "CreatorOS Studio AI",
         description: "Pro Plan — ₹299/month, auto-renews until cancelled",
         prefill: { email: user.email || "" },
         theme: { color: "#7C3AED" },

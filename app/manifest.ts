@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "CreatorOS AI — AI Content Creation Platform",
-    short_name: "CreatorOS AI",
+    name: "CreatorOS Studio AI — AI Content Creation Platform",
+    short_name: "CreatorOS Studio AI",
     description: "Generate viral hooks, scripts, captions, hashtags and more with AI.",
     start_url: "/home",
     display: "standalone",

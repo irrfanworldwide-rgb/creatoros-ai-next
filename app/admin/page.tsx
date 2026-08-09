@@ -29,7 +29,7 @@ export default async function AdminDashboardPage() {
       <div className="admin-topbar">
         <div>
           <h1>Dashboard</h1>
-          <p>Live overview of CreatorOS AI</p>
+          <p>Live overview of CreatorOS Studio AI</p>
         </div>
       </div>
 

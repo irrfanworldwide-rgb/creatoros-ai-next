@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms of Use",
-  description: "Terms and conditions for using CreatorOS AI.",
+  description: "Terms and conditions for using CreatorOS Studio AI.",
   alternates: { canonical: "/terms" },
   robots: { index: true, follow: true },
 };

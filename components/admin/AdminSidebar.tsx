@@ -23,7 +23,7 @@ export default function AdminSidebar({ username, role }: { username: string; rol
 
   return (
     <aside className="admin-sidebar">
-      <div className="admin-logo">CreatorOS AI Admin</div>
+      <div className="admin-logo">CreatorOS Studio AI Admin</div>
       {NAV_ITEMS.map((item) => (
         <Link
           key={item.href}

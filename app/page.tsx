@@ -399,7 +399,7 @@ export default function LandingPage() {
           </div>
           <div className="ai-demo-arrow">↓</div>
           <div className="ai-demo-row ai-demo-output">
-            <span className="ai-demo-label">CreatorOS AI</span>
+            <span className="ai-demo-label">CreatorOS Studio AI</span>
             <span className="ai-demo-text">
               {demoText}
               {demoTyping && <span className="ai-demo-cursor" />}

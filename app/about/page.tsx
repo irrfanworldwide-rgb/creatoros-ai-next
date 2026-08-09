@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "About Us",
-  description: "About CreatorOS AI — an AI content creation platform for creators.",
+  description: "About CreatorOS Studio AI — an AI content creation platform for creators.",
   alternates: { canonical: "/about" },
   robots: { index: true, follow: true },
 };
@@ -22,14 +22,14 @@ export default function AboutPage() {
       <div className="content-screen">
         <h2>What We Do</h2>
         <p>
-          CreatorOS AI helps creators generate content faster — scripts, hooks, captions, hashtags,
+          CreatorOS Studio AI helps creators generate content faster — scripts, hooks, captions, hashtags,
           CTAs, and more — using AI, with 21 purpose-built tools plus an AI chat assistant for
           quick creative help.
         </p>
         <h2>Why We Built It</h2>
         <p>
           Coming up with fresh, platform-ready content ideas every day is one of the hardest parts of
-          being a creator. CreatorOS AI exists to remove that friction — pick a tool, describe what
+          being a creator. CreatorOS Studio AI exists to remove that friction — pick a tool, describe what
           you need, and get something you can actually use in seconds.
         </p>
         <h2>Free to Start</h2>

@@ -34,13 +34,13 @@ export default function MaintenanceGate({ children }: { children: React.ReactNod
       >
         <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>🛠️</div>
         <div className="splash-logo" style={{ marginBottom: ".5rem" }}>
-          CreatorOS AI
+          CreatorOS Studio AI
         </div>
         <h2 style={{ fontFamily: "var(--font-space-grotesk),sans-serif", fontSize: "1.15rem", fontWeight: 700, marginBottom: ".5rem" }}>
           We&apos;ll be right back
         </h2>
         <p style={{ fontSize: "13px", color: "var(--text2)", maxWidth: 320 }}>
-          CreatorOS AI is undergoing scheduled maintenance. Please check back shortly.
+          CreatorOS Studio AI is undergoing scheduled maintenance. Please check back shortly.
         </p>
       </div>
     );

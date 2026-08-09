@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
   return (
     <div className="admin-login-wrap">
       <div className="admin-login-card">
-        <div className="splash-logo">CreatorOS AI</div>
+        <div className="splash-logo">CreatorOS Studio AI</div>
         <div className="admin-login-sub">Admin Panel — authorized access only</div>
         <form className="admin-login-form" onSubmit={handleSubmit}>
           <input

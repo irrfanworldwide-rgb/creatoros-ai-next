@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Admin — CreatorOS AI",
+  title: "Admin — CreatorOS Studio AI",
   robots: { index: false, follow: false },
 };
 

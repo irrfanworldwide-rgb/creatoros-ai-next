@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Cookie Policy",
-  description: "How CreatorOS AI uses cookies and similar technologies.",
+  description: "How CreatorOS Studio AI uses cookies and similar technologies.",
   alternates: { canonical: "/cookie-policy" },
   robots: { index: true, follow: true },
 };
@@ -23,7 +23,7 @@ export default function CookiePolicyPage() {
         <span className="legal-date">Last Updated: January 2026</span>
         <h2>What We Use Cookies For</h2>
         <p>
-          CreatorOS AI uses only the minimum cookies necessary to keep you signed in and to remember
+          CreatorOS Studio AI uses only the minimum cookies necessary to keep you signed in and to remember
           your session securely. We do not use advertising or third-party tracking cookies.
         </p>
         <h2>Essential Cookies</h2>
@@ -46,7 +46,7 @@ export default function CookiePolicyPage() {
         <h2>Managing Cookies</h2>
         <p>
           You can clear cookies via your browser settings at any time. Doing so will sign you out of
-          CreatorOS AI.
+          CreatorOS Studio AI.
         </p>
         <h2>Contact</h2>
         <p>

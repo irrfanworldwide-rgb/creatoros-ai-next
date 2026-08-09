@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "How CreatorOS AI collects, uses, and protects your data.",
+  description: "How CreatorOS Studio AI collects, uses, and protects your data.",
   alternates: { canonical: "/privacy" },
   robots: { index: true, follow: true },
 };

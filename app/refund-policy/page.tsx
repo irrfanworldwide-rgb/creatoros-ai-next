@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Refund Policy",
-  description: "CreatorOS AI's refund policy for Pro plan subscriptions.",
+  description: "CreatorOS Studio AI's refund policy for Pro plan subscriptions.",
   alternates: { canonical: "/refund-policy" },
   robots: { index: true, follow: true },
 };

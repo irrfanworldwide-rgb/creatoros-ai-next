@@ -25,19 +25,19 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://creator-os-ai-kohl
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "CreatorOS AI — AI Content Creation Platform",
-    template: "%s — CreatorOS AI",
+    default: "CreatorOS Studio AI — AI Content Creation Platform",
+    template: "%s — CreatorOS Studio AI",
   },
   description:
-    "CreatorOS AI — Generate viral hooks, scripts, captions, hashtags and more. Premium AI tools for content creators.",
+    "CreatorOS Studio AI — Generate viral hooks, scripts, captions, hashtags and more. Premium AI tools for content creators.",
   keywords:
-    "CreatorOS AI, AI Script Writer, Hook Generator, Caption Generator, Free AI Writing Tool",
+    "CreatorOS Studio AI, AI Script Writer, Hook Generator, Caption Generator, Free AI Writing Tool",
   robots: "index, follow",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "CreatorOS AI — AI Content Creation Platform",
+    title: "CreatorOS Studio AI — AI Content Creation Platform",
     description: "Generate viral content in seconds with AI.",
     type: "website",
     url: "/",

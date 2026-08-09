@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Contact Us",
-  description: "Get in touch with the CreatorOS AI team.",
+  description: "Get in touch with the CreatorOS Studio AI team.",
   alternates: { canonical: "/contact" },
   robots: { index: true, follow: true },
 };

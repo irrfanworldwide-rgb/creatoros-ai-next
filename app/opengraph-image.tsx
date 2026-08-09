@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "CreatorOS AI — AI Content Creation Platform";
+export const alt = "CreatorOS Studio AI — AI Content Creation Platform";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -22,7 +22,7 @@ export default function OpengraphImage() {
         <div
           style={{
             display: "flex",
-            fontSize: 92,
+            fontSize: 72,
             fontWeight: 700,
             fontFamily: "sans-serif",
             background: "linear-gradient(135deg, #7C3AED, #A855F7)",
@@ -31,7 +31,7 @@ export default function OpengraphImage() {
             marginBottom: 20,
           }}
         >
-          CreatorOS AI
+          CreatorOS Studio AI
         </div>
         <div style={{ display: "flex", fontSize: 34, color: "#8b949e", fontFamily: "sans-serif" }}>
           21 AI tools to write hooks, scripts, captions & more

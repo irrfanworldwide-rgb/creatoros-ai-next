@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 const MESSAGES = [
-  "Initializing CreatorOS AI...",
+  "Initializing CreatorOS Studio AI...",
   "Connecting Secure Database...",
   "Loading AI Models...",
   "Preparing Workspace...",
@@ -59,7 +59,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
   const dashOffset = RING_CIRCUMFERENCE - (percent / 100) * RING_CIRCUMFERENCE;
 
   return (
-    <div className={`splash-overlay ${fadingOut ? "splash-hidden" : ""}`} role="status" aria-live="polite" aria-label="Loading CreatorOS AI">
+    <div className={`splash-overlay ${fadingOut ? "splash-hidden" : ""}`} role="status" aria-live="polite" aria-label="Loading CreatorOS Studio AI">
       <div className="splash-bg" />
       {particles.map((p) => (
         <span
@@ -76,7 +76,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         />
       ))}
       <div className="splash-card">
-        <div className="splash-logo">CreatorOS AI</div>
+        <div className="splash-logo">CreatorOS Studio AI</div>
         <div className="splash-ring-wrap">
           <svg width="96" height="96" viewBox="0 0 96 96">
             <defs>
