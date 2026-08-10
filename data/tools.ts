@@ -27,7 +27,9 @@ Write the actual spoken script, not a list of section labels. Structure it as a 
     ],
     prompt: (v) => `Generate 20 scroll-stopping hooks for "${v.topic}" on ${v.platform}. Return only the finished hooks, ready to use — one per line, numbered 1-20.
 
-Draw from genuinely different angles across the list — curiosity, contradiction, a surprising insight, a common mistake, a transformation, a question, a bold observation, a relatable problem — so no two hooks feel like the same template with words swapped. Keep each hook short enough to work as an opening line (under ~15 words). Make them specific to "${v.topic}", not generic enough to fit any niche.
+Draw from genuinely different angles across the list — curiosity, tension, contradiction, an unexpected insight, a strong opinion, a problem, FOMO, a specific situation, a story, a question, a pattern interrupt, a counterintuitive idea — so no two hooks feel like the same template with words swapped. Keep each hook short enough to work as an opening line (under ~15 words). Make them specific to "${v.topic}", not generic enough to fit any niche.
+
+A hook must create an open loop or tension the viewer needs resolved — not read like a standalone motivational quote (e.g. avoid flat statements like "Adaptability is key to survival" or "Success isn't linear" that don't hook anyone into watching further).
 
 Do not invent specific numbers, earnings, follower counts, or personal claims (e.g. "$10K/month", "100K followers", "I quit my job") unless the user's topic explicitly states them — write around it with a real, honest angle instead.`,
   },
@@ -95,9 +97,15 @@ Never imply the viewer/creator personally achieved a specific result (earnings, 
     ],
     prompt: (v) => `Write a complete YouTube description for the video titled "${v.title}". Video summary: ${v.topic}
 
-Include: an engaging opening paragraph (hooks the reader, states what the video covers), a fuller summary paragraph, and a natural closing line. Base everything on the actual summary provided — don't invent details about the video's content beyond what's given.
+Structure it with whichever of these genuinely fit the summary provided — don't force sections the summary doesn't support:
+- An engaging opening line/paragraph that hooks the reader and states what the video covers.
+- A fuller overview paragraph.
+- "What you'll learn" or key takeaways, if the summary describes distinct points or steps.
+- A natural closing line and CTA (like/subscribe) if appropriate.
 
-Only include timestamps if the summary above provides them — do not invent fake timestamps. Only include links if the summary mentions specific resources — do not invent URLs, sponsors, or "resources mentioned" that weren't provided. If asked for SEO tags/hashtags, generate those separately based on the real topic, not a fixed count padded with generic tags.`,
+Base everything strictly on the actual summary provided — don't invent details about the video's content beyond what's given.
+
+Only include timestamps if the summary above provides them — omit that section entirely rather than inventing fake ones. Only include links if the summary mentions specific resources — do not invent URLs, sponsors, products, or "resources mentioned" that weren't provided; omit those sections too if there's nothing real to put in them. If asked for SEO tags/hashtags, generate those separately based on the real topic, not a fixed count padded with generic tags.`,
   },
   {
     id: "cta", icon: "📣", name: "CTA Generator", desc: "Powerful call-to-actions that convert.", cat: "Marketing",
@@ -186,7 +194,9 @@ Subject: [one strong subject line]
 
 [Sign-off]
 
-Write one complete, ready-to-send email — not multiple subject line options unless explicitly asked for them. Match the tone to a ${v.type}. Never invent security alerts, account warnings, urgent account actions, or any claim about the recipient's account/activity that wasn't part of the request — this is a common trust-breaking mistake to avoid entirely.`,
+Write one complete, ready-to-send email — not multiple subject line options unless explicitly asked for them. Match the tone to a ${v.type}.
+
+Do not invent a recipient name, company name, specific dates, offers, links, or sender identity that weren't provided — use clear placeholders like [Name], [Company Name], [Link], or [Your Name] wherever a real detail is genuinely needed but missing. Never invent security alerts, account warnings, urgent account actions, or any claim about the recipient's account/activity that wasn't part of the request — this is a common trust-breaking mistake to avoid entirely.`,
   },
   {
     id: "rewrite", icon: "✨", name: "AI Rewrite & Humanize", desc: "Improve or humanize any text.", cat: "Writing",
