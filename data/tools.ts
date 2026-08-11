@@ -17,7 +17,9 @@ Match the actual word count to the selected length (speaking pace ~130-160 words
 - Medium (2-5 min) → roughly 300-750 words total.
 - Long (10+ min) → roughly 1,300-1,600+ words — this must be a genuinely long, complete script, not a summary or outline.
 
-Write the actual spoken script, not a list of section labels. Structure it as a natural narrative: hook in the first few seconds, then set up the problem or context, deliver the main value with real explanations and specific examples (not placeholder brackets), use natural spoken transitions between sections, end with a clear takeaway and a CTA that fits ${v.platform}. Write it exactly as the creator would say it out loud — no stage directions like "[b-roll here]" unless the tone calls for scripted production notes.`,
+Start with a short production header: the title, target duration, and approximate word count of what you're about to write.
+
+Then write the actual spoken script broken into timed sections, e.g. "[00:00-00:30] HOOK" followed by the real spoken words for that section, then the next section's timestamp, and so on — the timestamps should be your own honest estimate based on how much you're actually writing for each section (roughly 130-160 words/min), not an invented schedule. Structure it as a natural narrative: hook in the first few seconds, then set up the problem or context, deliver the main value with real explanations and specific examples (not placeholder brackets), use natural spoken transitions between sections, end with a clear takeaway and a CTA that fits ${v.platform}. Write it exactly as the creator would say it out loud — no stage directions like "[b-roll here]" unless the tone calls for scripted production notes.`,
   },
   {
     id: "hook", icon: "🪝", name: "Hook Generator", desc: "20 viral hooks that stop the scroll.", badge: "🔥 Hot", cat: "Instagram",
@@ -41,7 +43,7 @@ Do not invent specific numbers, earnings, follower counts, or personal claims (e
     ],
     prompt: (v) => `Write 3 Instagram captions for "${v.topic}". Tone: ${v.tone}. Return only the finished captions, ready to post.
 
-Each caption needs a strong first line that stands alone in the feed preview, natural line spacing (not one dense paragraph), and — only if it genuinely fits the tone — a short CTA and a few relevant hashtags at the end. Make the 3 captions genuinely different from each other in angle and structure, not the same caption reworded three times.
+Each caption needs a strong first line that stands alone in the feed preview, natural line spacing (not one dense paragraph), and — only if it genuinely fits the tone — a short CTA and a few relevant hashtags at the end. Make the 3 captions take genuinely different approaches, not the same caption reworded three times — for example: one educational/value-driven, one curiosity or story-led, one conversational/engagement-focused. Adapt which three angles fit best if the topic calls for something else.
 
 Avoid overused caption openers like "Ready to...", "Want to...", "Take your...", "Level up..." unless one is the strongest natural fit. Keep hashtags relevant and limited rather than a long generic list.`,
   },
@@ -166,7 +168,7 @@ Use genuinely different naming approaches across the list (compound words, inven
 
 Give three versions: a short one (~50 words) for a product card, a medium one (~150 words) for a listing page, and a fuller sales-copy version (~300 words) that builds more persuasion around the actual features given. End with 2-3 short CTA line options.
 
-Base every claim strictly on the features provided — do not invent additional features, specifications, guarantees, or statistics that weren't given.`,
+Base every claim strictly on the features provided — do not invent additional features, specifications, guarantees, or statistics that weren't given. Avoid guaranteed-outcome language ("will transform your results", "guaranteed to..."); prefer honest, still-persuasive phrasing like "can help", "designed to", "built for" instead.`,
   },
   {
     id: "adcopy", icon: "📢", name: "Ad Copy Generator", desc: "High-converting Facebook & Instagram ads.", badge: "Popular", cat: "Marketing",
@@ -177,7 +179,7 @@ Base every claim strictly on the features provided — do not invent additional 
     ],
     prompt: (v) => `Write 5 ${v.platform} ad variations for "${v.product}" targeting ${v.audience}. Each needs a headline, body copy, and CTA — return only the finished ads.
 
-Make each ad use a genuinely different strategic angle: (1) problem → solution, (2) social proof, (3) urgency/FOMO, (4) lead with the core benefit, (5) direct and to-the-point. For the social-proof ad, do not invent specific testimonials, review counts, or customer numbers — use a general credibility angle instead unless real proof points were provided.`,
+Make each ad use a genuinely different strategic angle: (1) problem → solution, (2) social proof, (3) urgency/FOMO, (4) lead with the core benefit, (5) direct and to-the-point. For the social-proof ad, do not invent specific testimonials, review counts, or customer numbers — use a general credibility angle instead unless real proof points were provided. Avoid guaranteed-outcome or financial-results claims ("you'll make $X", "guaranteed results") — use honest, still-compelling language like "can help you" or "designed to" instead.`,
   },
   {
     id: "email", icon: "📧", name: "Email Writer", desc: "Marketing emails that get opened.", cat: "Writing",
