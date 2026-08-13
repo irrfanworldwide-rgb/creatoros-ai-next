@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAIProvider, AIProviderError } from "@/lib/ai";
 import { getBearerToken, getUserFromToken, getUserScopedClient } from "@/lib/supabase/serverAuth";
 import { canGenerate, getTodayUsage, incUsage, getFreeDailyLimit } from "@/lib/supabase/data";
+import type { AIMessage } from "@/lib/ai/types";
 
 // Never cache these endpoints — every request is user-specific and
 // security-sensitive (AI generation usage, payment verification).
@@ -19,9 +20,26 @@ export async function POST(req: NextRequest) {
   }
 
   let prompt: string | undefined;
+  let history: AIMessage[] | undefined;
   try {
-    const body = (await req.json()) as { prompt?: string };
+    const body = (await req.json()) as { prompt?: string; history?: unknown };
     prompt = body.prompt;
+    if (Array.isArray(body.history)) {
+      const valid = body.history.every(
+        (m): m is AIMessage =>
+          typeof m === "object" &&
+          m !== null &&
+          (m.role === "user" || m.role === "assistant") &&
+          typeof m.content === "string" &&
+          m.content.length <= 8000
+      );
+      if (valid && body.history.length <= 30) {
+        history = body.history as AIMessage[];
+      }
+      // Malformed or oversized history is silently ignored rather than
+      // rejecting the whole request — Chat still works, just without
+      // context for that one request, instead of erroring out.
+    }
   } catch {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
@@ -54,7 +72,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const provider = getAIProvider();
-    const { content } = await provider.generate(prompt);
+    const { content } = await provider.generate(prompt, history);
 
     // Only count usage on a successful generation — a failed provider
     // call shouldn't cost the user one of their daily generations.

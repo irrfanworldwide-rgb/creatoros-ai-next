@@ -1,6 +1,8 @@
-import { AIProviderError, type AIProvider, type AIGenerateResult } from "./types";
+import { AIProviderError, type AIProvider, type AIGenerateResult, type AIMessage } from "./types";
 import { CREATOROS_SYSTEM_PROMPT } from "./systemPrompt";
 import { sanitizeAIResponse } from "./sanitize";
+
+const MAX_HISTORY_MESSAGES = 10;
 
 export function createOpenAIProvider(): AIProvider {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -14,9 +16,10 @@ export function createOpenAIProvider(): AIProvider {
   }
 
   return {
-    async generate(prompt: string): Promise<AIGenerateResult> {
+    async generate(prompt: string, history?: AIMessage[]): Promise<AIGenerateResult> {
       let res: Response;
       try {
+        const historyMessages = (history || []).slice(-MAX_HISTORY_MESSAGES);
         res = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -27,6 +30,7 @@ export function createOpenAIProvider(): AIProvider {
             model,
             messages: [
               { role: "system", content: CREATOROS_SYSTEM_PROMPT },
+              ...historyMessages,
               { role: "user", content: prompt },
             ],
             temperature: 0.8,

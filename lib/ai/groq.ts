@@ -1,6 +1,8 @@
-import { AIProviderError, type AIProvider, type AIGenerateResult } from "./types";
+import { AIProviderError, type AIProvider, type AIGenerateResult, type AIMessage } from "./types";
 import { CREATOROS_SYSTEM_PROMPT } from "./systemPrompt";
 import { sanitizeAIResponse } from "./sanitize";
+
+const MAX_HISTORY_MESSAGES = 10; // caps token usage/cost — recent context is what matters for "make it shorter" style follow-ups
 
 export function createGroqProvider(): AIProvider {
   const apiKey = process.env.GROQ_API_KEY;
@@ -14,9 +16,10 @@ export function createGroqProvider(): AIProvider {
   }
 
   return {
-    async generate(prompt: string): Promise<AIGenerateResult> {
+    async generate(prompt: string, history?: AIMessage[]): Promise<AIGenerateResult> {
       let res: Response;
       try {
+        const historyMessages = (history || []).slice(-MAX_HISTORY_MESSAGES);
         // Groq exposes an OpenAI-compatible endpoint, so the request/response
         // shape matches the OpenAI provider exactly.
         res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -29,6 +32,7 @@ export function createGroqProvider(): AIProvider {
             model,
             messages: [
               { role: "system", content: CREATOROS_SYSTEM_PROMPT },
+              ...historyMessages,
               { role: "user", content: prompt },
             ],
             temperature: 0.8,

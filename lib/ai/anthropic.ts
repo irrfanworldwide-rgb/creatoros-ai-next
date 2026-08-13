@@ -1,6 +1,8 @@
-import { AIProviderError, type AIProvider, type AIGenerateResult } from "./types";
+import { AIProviderError, type AIProvider, type AIGenerateResult, type AIMessage } from "./types";
 import { CREATOROS_SYSTEM_PROMPT } from "./systemPrompt";
 import { sanitizeAIResponse } from "./sanitize";
+
+const MAX_HISTORY_MESSAGES = 10;
 
 export function createAnthropicProvider(): AIProvider {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -14,9 +16,10 @@ export function createAnthropicProvider(): AIProvider {
   }
 
   return {
-    async generate(prompt: string): Promise<AIGenerateResult> {
+    async generate(prompt: string, history?: AIMessage[]): Promise<AIGenerateResult> {
       let res: Response;
       try {
+        const historyMessages = (history || []).slice(-MAX_HISTORY_MESSAGES);
         res = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers: {
@@ -28,7 +31,7 @@ export function createAnthropicProvider(): AIProvider {
             model,
             max_tokens: 1500,
             system: CREATOROS_SYSTEM_PROMPT,
-            messages: [{ role: "user", content: prompt }],
+            messages: [...historyMessages, { role: "user", content: prompt }],
           }),
         });
       } catch {

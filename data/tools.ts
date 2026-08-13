@@ -100,14 +100,16 @@ Never imply the viewer/creator personally achieved a specific result (earnings, 
     prompt: (v) => `Write a complete YouTube description for the video titled "${v.title}". Video summary: ${v.topic}
 
 Structure it with whichever of these genuinely fit the summary provided — don't force sections the summary doesn't support:
-- An engaging opening line/paragraph that hooks the reader and states what the video covers.
-- A fuller overview paragraph.
-- "What you'll learn" or key takeaways, if the summary describes distinct points or steps.
+- An engaging opening (2-3 sentences) that hooks the reader and naturally includes the primary keyword/topic near the start.
+- A fuller overview paragraph explaining what the video covers.
+- "What you'll learn" or key takeaways, as a short bullet list, if the summary describes distinct points or steps.
 - A natural closing line and CTA (like/subscribe) if appropriate.
+- A short list of relevant search phrases (primary, secondary, and a couple of long-tail variations) naturally related to the exact topic — presented as a simple line, not stuffed into the prose above.
+- A small set of relevant hashtags.
 
-Base everything strictly on the actual summary provided — don't invent details about the video's content beyond what's given.
+Base everything strictly on the actual summary provided — don't invent details about the video's content beyond what's given. Keep keywords natural and topic-accurate, never stuffed or repeated artificially.
 
-Only include timestamps if the summary above provides them — omit that section entirely rather than inventing fake ones. Only include links if the summary mentions specific resources — do not invent URLs, sponsors, products, or "resources mentioned" that weren't provided; omit those sections too if there's nothing real to put in them. If asked for SEO tags/hashtags, generate those separately based on the real topic, not a fixed count padded with generic tags.`,
+Only include timestamps if the summary above provides them — omit that section entirely rather than inventing fake ones. Only include links if the summary mentions specific resources — do not invent URLs, sponsors, products, or "resources mentioned" that weren't provided; omit those sections too if there's nothing real to put in them.`,
   },
   {
     id: "cta", icon: "📣", name: "CTA Generator", desc: "Powerful call-to-actions that convert.", cat: "Marketing",

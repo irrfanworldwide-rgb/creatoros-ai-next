@@ -36,7 +36,7 @@ export default function ChatPage() {
   const plan = profile?.plan ?? "free";
   const allowed = canGenerate(plan, usageToday, freeDailyLimit);
 
-  async function callGenerate(prompt: string): Promise<{ ok: boolean; text: string }> {
+  async function callGenerate(prompt: string, historyMessages: ChatMessage[]): Promise<{ ok: boolean; text: string }> {
     try {
       const sb = getSupabaseBrowserClient();
       const {
@@ -47,10 +47,18 @@ export default function ChatPage() {
         return { ok: false, text: "Your session expired. Please sign in again." };
       }
 
+      // Send recent prior turns so the AI can resolve references like
+      // "make it shorter" or "same but professional" — mapped to the
+      // API's user/assistant role naming.
+      const history = historyMessages.slice(-20).map((m) => ({
+        role: m.role === "ai" ? "assistant" : "user",
+        content: m.content,
+      }));
+
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt, history }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -66,11 +74,12 @@ export default function ChatPage() {
   async function handleSend() {
     if (!input.trim() || sending || !allowed || !user) return;
     const userMsg: ChatMessage = { role: "user", content: input.trim() };
+    const priorMessages = messages;
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setSending(true);
 
-    const { ok, text } = await callGenerate(userMsg.content);
+    const { ok, text } = await callGenerate(userMsg.content, priorMessages);
     setMessages((prev) => [...prev, { role: "ai", content: text }]);
     if (!ok) showToast("Message failed to send");
     setSending(false);
@@ -84,11 +93,12 @@ export default function ChatPage() {
     if (lastUserIndex === -1) return;
     const realIndex = messages.length - 1 - lastUserIndex;
     const lastUserMsg = messages[realIndex];
+    const priorMessages = messages.slice(0, realIndex);
 
     setMessages((prev) => prev.slice(0, realIndex + 1)); // keep up to and including the user message
     setSending(true);
 
-    const { ok, text } = await callGenerate(lastUserMsg.content);
+    const { ok, text } = await callGenerate(lastUserMsg.content, priorMessages);
     setMessages((prev) => [...prev, { role: "ai", content: text }]);
     if (!ok) showToast("Regeneration failed");
     setSending(false);
