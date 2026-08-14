@@ -271,7 +271,8 @@ export default function LandingPage() {
               with AI
             </h1>
             <p className="hero-p">
-              Generate hooks, scripts, captions, hashtags and more in seconds. Free to join — no credit card needed.
+              CreatorOS Studio AI is an AI-powered creative workspace for creators — create scripts, hooks,
+              captions, content ideas and more, all in one place. Free to join, no credit card needed.
             </p>
             <div className="hero-btns">
               <button className="btn-grad" onClick={() => openAuth("signup")}>
