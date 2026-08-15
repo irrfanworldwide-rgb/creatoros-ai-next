@@ -271,8 +271,9 @@ export default function LandingPage() {
               with AI
             </h1>
             <p className="hero-p">
-              CreatorOS Studio AI is an AI-powered creative workspace for creators — create scripts, hooks,
-              captions, content ideas and more, all in one place. Free to join, no credit card needed.
+              CreatorOS Studio AI is an AI-powered creative workspace for creators. Create scripts, hooks,
+              captions, content ideas and other creator content with AI — all in one workspace. Free to join, no
+              credit card needed.
             </p>
             <div className="hero-btns">
               <button className="btn-grad" onClick={() => openAuth("signup")}>
@@ -542,6 +543,10 @@ export default function LandingPage() {
         <div className="footer-bottom">
           <span>© 2026 CreatorOS Studio AI</span>
           <span>Made with ❤️ for Content Creators 🇮🇳</span>
+          <span>
+            We use your Google account information to securely authenticate your account and provide access to
+            CreatorOS Studio AI. We do not sell your personal information.
+          </span>
           <span>Version 1.0</span>
         </div>
       </footer>
