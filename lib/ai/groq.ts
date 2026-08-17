@@ -6,8 +6,7 @@ const MAX_HISTORY_MESSAGES = 10; // caps token usage/cost — recent context is 
 
 export function createGroqProvider(): AIProvider {
   const apiKey = process.env.GROQ_API_KEY;
-  const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
-
+  const model = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
   if (!apiKey) {
     throw new AIProviderError(
       "GROQ_API_KEY is not set. Add it to .env.local and restart the dev server. See SETUP.md.",
