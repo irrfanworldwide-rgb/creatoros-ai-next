@@ -212,15 +212,29 @@ export default function LandingPage() {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: "CreatorOS Studio AI",
-            applicationCategory: "BusinessApplication",
-            operatingSystem: "Web",
-            description:
-              "AI content creation platform for creators — 21 AI tools for scripts, hooks, captions, hashtags, CTAs, and an AI chat assistant.",
-            offers: [
-              { "@type": "Offer", name: "Free", price: "0", priceCurrency: "INR" },
-              { "@type": "Offer", name: "Pro", price: "299", priceCurrency: "INR" },
+            "@graph": [
+              {
+                "@type": "SoftwareApplication",
+                name: "CreatorOS Studio AI",
+                applicationCategory: "BusinessApplication",
+                operatingSystem: "Web",
+                description:
+                  "AI content creation platform for creators — 21 AI tools for scripts, hooks, captions, hashtags, CTAs, and an AI chat assistant.",
+                offers: [
+                  { "@type": "Offer", name: "Free", price: "0", priceCurrency: "INR" },
+                  { "@type": "Offer", name: "Pro", price: "299", priceCurrency: "INR" },
+                ],
+              },
+              {
+                "@type": "Organization",
+                name: "CreatorOS Studio AI",
+                url: "https://creatorosstudio.in",
+              },
+              {
+                "@type": "WebSite",
+                name: "CreatorOS Studio AI",
+                url: "https://creatorosstudio.in",
+              },
             ],
           }),
         }}

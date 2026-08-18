@@ -19,7 +19,7 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://creator-os-ai-kohl.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://creatorosstudio.in";
 
 // Ported from the original <head> meta tags.
 export const metadata: Metadata = {
@@ -41,6 +41,7 @@ export const metadata: Metadata = {
     description: "Generate viral content in seconds with AI.",
     type: "website",
     url: "/",
+    siteName: "CreatorOS Studio AI",
   },
   twitter: {
     card: "summary_large_image",
