@@ -12,15 +12,22 @@ export function getBearerToken(req: NextRequest): string | null {
 }
 
 /**
- * Resolves a Supabase access token to a real, currently-valid user by
- * asking the Supabase Auth server directly. Never trust a client-supplied
- * user id for anything security-sensitive (like crediting a payment) —
- * always derive it from a verified token instead.
+ * Resolves a Supabase access token to a real, currently-valid, email-
+ * verified user by asking the Supabase Auth server directly. Never trust
+ * a client-supplied user id for anything security-sensitive (like
+ * crediting a payment) — always derive it from a verified token instead.
+ *
+ * Returns null for an unverified email the same as for an invalid token,
+ * so every route using this (generate, all payment routes) is protected
+ * against unverified access without each one needing its own check —
+ * client-side redirects (useRequireAuth) are UX only, this is the real
+ * enforcement.
  */
 export async function getUserFromToken(token: string): Promise<User | null> {
   const sb = createClient(SB_URL, SB_ANON_KEY);
   const { data, error } = await sb.auth.getUser(token);
   if (error || !data.user) return null;
+  if (!data.user.email_confirmed_at) return null;
   return data.user;
 }
 

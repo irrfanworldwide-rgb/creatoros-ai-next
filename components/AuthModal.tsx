@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useToast } from "@/contexts/ToastContext";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
@@ -20,6 +21,7 @@ export default function AuthModal({ isOpen, initialTab, onClose }: AuthModalProp
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState<{ text: string; type: "error" | "success" } | null>(null);
   const { showToast } = useToast();
+  const router = useRouter();
   useBodyScrollLock(isOpen);
 
   if (!isOpen) return null;
@@ -39,10 +41,17 @@ export default function AuthModal({ isOpen, initialTab, onClose }: AuthModalProp
     setSubmitting(true);
     setMsg(null);
     const sb = getSupabaseBrowserClient();
-    const { error } = await sb.auth.signInWithPassword({ email, password });
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
     setSubmitting(false);
     if (error) {
       setMsg({ text: "Wrong email or password. Please try again.", type: "error" });
+      return;
+    }
+    if (data.user && !data.user.email_confirmed_at) {
+      const pendingEmail = email;
+      reset();
+      onClose();
+      router.push(`/verify-email?email=${encodeURIComponent(pendingEmail)}`);
       return;
     }
     showToast("Welcome back!");
@@ -64,12 +73,11 @@ export default function AuthModal({ isOpen, initialTab, onClose }: AuthModalProp
       setMsg({ text: error.message, type: "error" });
       return;
     }
-    setMsg({ text: "Account created! You're all set.", type: "success" });
-    showToast("Account created!");
-    setTimeout(() => {
-      reset();
-      onClose();
-    }, 900);
+    const pendingEmail = email;
+    showToast("Verification code sent!");
+    reset();
+    onClose();
+    router.push(`/verify-email?email=${encodeURIComponent(pendingEmail)}`);
   }
 
   async function doGoogle() {
@@ -130,6 +138,22 @@ export default function AuthModal({ isOpen, initialTab, onClose }: AuthModalProp
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          {tab === "login" && (
+            <button
+              type="button"
+              className="auth-forgot-link"
+              onClick={() => {
+                const pendingEmail = email;
+                reset();
+                onClose();
+                router.push(
+                  pendingEmail ? `/forgot-password?email=${encodeURIComponent(pendingEmail)}` : "/forgot-password"
+                );
+              }}
+            >
+              Forgot password?
+            </button>
+          )}
           <button
             className="auth-btn"
             disabled={submitting || !email || !password}
