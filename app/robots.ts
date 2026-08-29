@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/tools", "/tools/"],
+      allow: ["/", "/tools"],
       // /tools is now a real public SEO landing page (see app/tools/page.tsx
       // and app/tools/layout.tsx) — no longer disallowed. Individual
       // /tools/[id] pages were already public and indexable.

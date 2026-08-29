@@ -201,9 +201,12 @@ export default function ToolDetailPage() {
 
             {tool.inputs.map((input) => (
               <div className="inp-group" key={input.id}>
-                <label className="inp-label">{input.label}</label>
+                <label className="inp-label" htmlFor={`tool-input-${input.id}`}>
+                  {input.label}
+                </label>
                 {input.type === "textarea" ? (
                   <textarea
+                    id={`tool-input-${input.id}`}
                     className="inp-field"
                     rows={input.rows || 3}
                     placeholder={input.placeholder}
@@ -212,6 +215,7 @@ export default function ToolDetailPage() {
                   />
                 ) : input.type === "select" ? (
                   <select
+                    id={`tool-input-${input.id}`}
                     className="inp-field"
                     value={values[input.id] || input.options?.[0] || ""}
                     onChange={(e) => setValue(input.id, e.target.value)}
@@ -224,6 +228,7 @@ export default function ToolDetailPage() {
                   </select>
                 ) : (
                   <input
+                    id={`tool-input-${input.id}`}
                     className="inp-field"
                     placeholder={input.placeholder}
                     value={values[input.id] || ""}
