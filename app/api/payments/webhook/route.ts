@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
     : null;
 
   if (ACTIVE_STATUSES.has(payload.event)) {
-    await sb
+    const { error: activateError } = await sb
       .from("profiles")
       .update({
         plan: "pro",
@@ -113,6 +113,13 @@ export async function POST(req: NextRequest) {
         subscription_current_end: currentEnd,
       })
       .eq("id", profile.id);
+    if (activateError) {
+      // This is the case that matters most to catch: a genuinely verified
+      // payment where activation itself then failed — invisible before
+      // this log line existed.
+      // eslint-disable-next-line no-console
+      console.error("Webhook: Pro activation write failed for a verified payment:", activateError.message);
+    }
 
     if (paymentId) {
       // Best-effort — unique constraint on razorpay_payment_id means a

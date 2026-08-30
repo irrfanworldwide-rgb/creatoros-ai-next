@@ -59,6 +59,8 @@ export async function POST(req: NextRequest) {
     .eq("id", user.id);
 
   if (updateError) {
+    // eslint-disable-next-line no-console
+    console.error("Verified payment but profile activation failed:", updateError.message);
     return NextResponse.json({ error: "Payment verified but activation failed. Contact support." }, { status: 500 });
   }
 
