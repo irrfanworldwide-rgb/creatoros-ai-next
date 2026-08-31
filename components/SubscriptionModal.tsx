@@ -138,7 +138,7 @@ export default function SubscriptionModal({ isOpen, onClose }: SubscriptionModal
           </div>
         </div>
         <p style={{ fontSize: "11px", color: "var(--text3)", textAlign: "center", margin: "0 1.25rem .75rem" }}>
-          Auto-renews monthly at ₹299 until cancelled. Cancel anytime from your Profile.
+          Auto-renews monthly at ₹299 via UPI AutoPay. Manage or cancel anytime from your UPI app or bank.
         </p>
         {error && (
           <div className="sub-limit-note" style={{ margin: "0 1.25rem .5rem" }}>

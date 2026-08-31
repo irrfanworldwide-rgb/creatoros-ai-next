@@ -9,17 +9,14 @@ import BottomNav from "@/components/BottomNav";
 import ScreenLoader from "@/components/ScreenLoader";
 import { useToast } from "@/contexts/ToastContext";
 import { createRipple } from "@/lib/ui/ripple";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const SubscriptionModal = dynamic(() => import("@/components/SubscriptionModal"), { ssr: false });
 
 export default function ProfilePage() {
   const { user, loading } = useRequireAuth();
-  const { profile, signOut, refreshProfile } = useSession();
+  const { profile, signOut } = useSession();
   const router = useRouter();
   const [subOpen, setSubOpen] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
-  const [confirmCancel, setConfirmCancel] = useState(false);
   const { showToast } = useToast();
 
   // Reached via the shared upgrade flow (Tool Detail limit, Chat limit,
@@ -39,7 +36,6 @@ export default function ProfilePage() {
   const subStatus = profile?.subscription_status ?? null;
   const hasSubscription = !!profile?.razorpay_subscription_id;
   const isCancelling = subStatus === "cancelled"; // pending cancel-at-cycle-end, still has access
-  const autoRenew = hasSubscription && subStatus === "active";
   const nextBillingLabel = profile?.subscription_current_end
     ? new Date(profile.subscription_current_end).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
     : null;
@@ -51,41 +47,6 @@ export default function ProfilePage() {
     await signOut();
     showToast("Logged out");
     router.replace("/");
-  }
-
-  async function handleCancelSubscription() {
-    if (!confirmCancel) {
-      setConfirmCancel(true);
-      return;
-    }
-    setCancelling(true);
-    try {
-      const sb = getSupabaseBrowserClient();
-      const {
-        data: { session },
-      } = await sb.auth.getSession();
-      const accessToken = session?.access_token;
-      if (!accessToken) {
-        showToast("Your session expired. Please sign in again.");
-        return;
-      }
-      const res = await fetch("/api/payments/cancel-subscription", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        showToast(data.error || "Could not cancel subscription.");
-        return;
-      }
-      await refreshProfile();
-      showToast("Auto-renew turned off. Pro access continues until your current cycle ends.");
-    } catch {
-      showToast("Could not cancel subscription. Please try again.");
-    } finally {
-      setCancelling(false);
-      setConfirmCancel(false);
-    }
   }
 
   return (
@@ -146,29 +107,10 @@ export default function ProfilePage() {
                 <span className="prof-row-value">{nextBillingLabel}</span>
               </div>
             )}
-            <div className="prof-row">
-              <div className="prof-row-left">
-                <span className="prof-row-icon">🔁</span>
-                <span className="prof-row-label">Auto-Renew</span>
-              </div>
-              <span className="prof-row-value">{autoRenew ? "On" : "Off"}</span>
-            </div>
             {subStatus === "pending" && (
               <div className="sub-limit-note" style={{ margin: ".75rem 1rem" }}>
                 Your last renewal payment failed. Razorpay will retry automatically — update your payment
                 method with your bank if this continues, or contact support.
-              </div>
-            )}
-            {!isCancelling && (
-              <div style={{ padding: "0 1rem 1rem" }}>
-                <button
-                  className="lib-btn ripple-container"
-                  disabled={cancelling}
-                  onClick={handleCancelSubscription}
-                  style={confirmCancel ? { borderColor: "var(--red)", color: "var(--red)" } : undefined}
-                >
-                  {cancelling ? "Cancelling..." : confirmCancel ? "Tap again to confirm" : "Cancel Subscription"}
-                </button>
               </div>
             )}
           </div>

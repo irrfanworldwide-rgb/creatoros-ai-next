@@ -9,7 +9,8 @@ export const dynamic = "force-dynamic";
 // subscription naturally completes. Razorpay requires a finite count —
 // there's no literal "forever." 120 months (10 years) is effectively
 // unlimited for a monthly SaaS plan; the subscription can still be
-// cancelled at any time before that via /api/payments/cancel-subscription.
+// cancelled by an admin (see /api/admin/subscriptions/[userId]/cancel)
+// or by the user directly via their UPI/bank app before that.
 const TOTAL_BILLING_CYCLES = 120;
 
 export async function POST(req: NextRequest) {
