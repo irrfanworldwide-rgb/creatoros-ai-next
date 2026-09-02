@@ -89,45 +89,45 @@ export default function Layout({ children, params }: { children: React.ReactNode
       )}
       {children}
       {content && (
-        <div className="td-body">
+        <div className="td-seo-wrap">
           {content.sections.map((s) => (
-            <section key={s.heading} style={{ marginBottom: "1.5rem" }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: ".4rem" }}>{s.heading}</h2>
-              <p style={{ fontSize: 13.5, color: "var(--text2)", lineHeight: 1.7 }}>{s.body}</p>
-            </section>
+            <details className="td-seo-accordion" key={s.heading}>
+              <summary>
+                <h2>{s.heading}</h2>
+              </summary>
+              <p>{s.body}</p>
+            </details>
           ))}
           {content.faq.length > 0 && (
-            <section>
-              <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: ".6rem" }}>
-                {TOOLS.find((t) => t.id === params.id)?.name} FAQ
-              </h2>
-              {content.faq.map((f) => (
-                <div key={f.q} style={{ marginBottom: "1rem" }}>
-                  <h3 style={{ fontSize: 13.5, fontWeight: 600, marginBottom: ".25rem" }}>{f.q}</h3>
-                  <p style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.6 }}>{f.a}</p>
-                </div>
-              ))}
-            </section>
+            <details className="td-seo-accordion">
+              <summary>
+                <h2>{TOOLS.find((t) => t.id === params.id)?.name} FAQ</h2>
+              </summary>
+              <div>
+                {content.faq.map((f) => (
+                  <div className="td-seo-faq-item" key={f.q}>
+                    <h3>{f.q}</h3>
+                    <p>{f.a}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
           )}
           {(() => {
             const current = TOOLS.find((t) => t.id === params.id);
             const related = current ? TOOLS.filter((t) => t.cat === current.cat && t.id !== current.id).slice(0, 3) : [];
             if (related.length === 0) return null;
             return (
-              <section>
-                <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: ".6rem" }}>Related AI Tools</h2>
-                <div style={{ display: "flex", flexDirection: "column", gap: ".5rem" }}>
+              <div className="td-seo-related">
+                <h2>Related AI Tools</h2>
+                <div className="td-seo-chips">
                   {related.map((t) => (
-                    <Link
-                      key={t.id}
-                      href={`/tools/${t.id}`}
-                      style={{ fontSize: 13.5, color: "var(--primary2)", textDecoration: "none" }}
-                    >
-                      {t.name} →
+                    <Link key={t.id} href={`/tools/${t.id}`} className="td-seo-chip">
+                      {t.icon} {t.name}
                     </Link>
                   ))}
                 </div>
-              </section>
+              </div>
             );
           })()}
         </div>
